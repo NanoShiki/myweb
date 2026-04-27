@@ -18,10 +18,9 @@ export default function Status() {
     <div className="w-full space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Profile Card */}
-        <aside className="lg:col-span-4 flex flex-col gap-4">
-          <motion.div
-            whileHover={{ y: -2 }}
-            className="bg-parchment-100 border-2 border-parchment-400 rounded-lg p-5 shadow-inner relative"
+        <aside className="lg:col-span-4 flex flex-col gap-8 pt-1">
+          <div
+            className="relative flex flex-col items-center"
           >
             <div className="absolute -top-3 -left-3 w-8 h-8 bg-parchment-400 rotate-45 flex items-center justify-center text-white font-bold text-lg pointer-events-none z-10 shadow-sm">
               <span className="-rotate-45">Lv.4</span>
@@ -49,20 +48,20 @@ export default function Status() {
                 </h3>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <div className="bg-guild-ink text-parchment-200 p-4 rounded-lg flex flex-col gap-2 shadow-lg">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-parchment-400 mb-1">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-guild-secondary border-b border-parchment-300 pb-1 mb-2">
               Familia Links
             </h2>
             <a
               href="https://space.bilibili.com/253377872"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+              className="flex items-center gap-3 py-1 hover:bg-parchment-200/50 px-2 -mx-2 rounded cursor-pointer transition-colors group text-guild-ink"
             >
               <div className="w-2 h-2 bg-pink-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2">
+              <span className="text-sm flex items-center gap-2 font-medium">
                 <Tv size={14} /> Bilibili
               </span>
             </a>
@@ -70,10 +69,10 @@ export default function Status() {
               href="https://github.com/NanoShiki"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+              className="flex items-center gap-3 py-1 hover:bg-parchment-200/50 px-2 -mx-2 rounded cursor-pointer transition-colors group text-guild-ink"
             >
               <div className="w-2 h-2 bg-blue-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2">
+              <span className="text-sm flex items-center gap-2 font-medium">
                 <Github size={14} /> GitHub
               </span>
             </a>
@@ -81,10 +80,10 @@ export default function Status() {
               href="https://www.zhihu.com/people/nanoshiki"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+              className="flex items-center gap-3 py-1 hover:bg-parchment-200/50 px-2 -mx-2 rounded cursor-pointer transition-colors group text-guild-ink"
             >
               <div className="w-2 h-2 bg-sky-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2">
+              <span className="text-sm flex items-center gap-2 font-medium">
                 <BookOpen size={14} /> Zhihu
               </span>
             </a>
@@ -96,20 +95,20 @@ export default function Status() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex-1 bg-parchment-100 border-2 border-parchment-400 p-6 rounded-lg flex flex-col overflow-hidden relative shadow-inner"
+            className="flex-1 flex flex-col relative"
           >
             {/* Background flourish */}
-            <div className="absolute bottom-[-10%] right-[-5%] opacity-5 pointer-events-none text-guild-gold">
-              <Award size={250} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none text-guild-gold z-0">
+              <Award size={300} />
             </div>
 
-            <h2 className="text-xl font-bold border-b border-parchment-300 mb-6 pb-2 text-guild-gold font-serif uppercase tracking-widest relative z-10">
+            <h2 className="text-xl font-bold border-b-2 border-parchment-400 mb-6 pb-2 text-guild-gold font-serif uppercase tracking-widest relative z-10">
               ORARIO
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
               {/* Magic Notes Preview */}
-              <div className="bg-white/40 border border-parchment-300 p-4 rounded flex flex-col hover:border-guild-primary transition-colors">
+              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
                 <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
                   <BookOpen size={14} /> Magic Notes Preview
                 </h3>
@@ -136,7 +135,7 @@ export default function Status() {
               </div>
 
               {/* Magic Records Preview */}
-              <div className="bg-white/40 border border-parchment-300 p-4 rounded flex flex-col hover:border-guild-primary transition-colors">
+              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
                 <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
                   <Sword size={14} /> Magic Records Preview
                 </h3>
@@ -159,7 +158,7 @@ export default function Status() {
               </div>
 
               {/* Tavern Rumors Preview */}
-              <div className="md:col-span-2 bg-white/40 border border-parchment-300 p-4 rounded flex flex-col hover:border-guild-primary transition-colors">
+              <div className="md:col-span-2 bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
                 <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
                   <Coffee size={14} /> Latest Tavern Rumor
                 </h3>
@@ -181,12 +180,12 @@ export default function Status() {
         </section>
       </div>
 
-      <div className="bg-parchment-100 border-2 border-parchment-400 p-6 rounded-lg shadow-inner mt-8">
-        <h2 className="text-xl font-bold border-b border-parchment-300 mb-6 pb-2 text-guild-gold font-serif uppercase tracking-widest relative z-10">
+      <div className="mt-8 relative">
+        <h2 className="text-xl font-bold border-b-2 border-parchment-400 mb-6 pb-2 text-guild-gold font-serif uppercase tracking-widest relative z-10">
           My Favorite Characters
         </h2>
 
-        <div className="bg-white/40 border border-parchment-300 p-6 rounded hover:border-guild-primary transition-colors">
+        <div className="relative z-10 pt-2">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Column: Avatar & Basic Specs */}
             <div className="flex-shrink-0 w-full lg:w-64 flex flex-col items-center">
@@ -324,7 +323,7 @@ export default function Status() {
 
             {/* Middle Column: Status Bars */}
             <div className="flex-1 flex flex-col gap-6">
-              <div className="bg-parchment-100 rounded p-4 border border-parchment-300">
+              <div>
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-white bg-guild-primary h-6 flex items-center justify-center rounded mb-4">
                   Status
                 </h4>
@@ -384,7 +383,7 @@ export default function Status() {
             <div className="flex-1 flex flex-col gap-6">
               <div>
                 <div className="space-y-4">
-                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                  <div>
                     <h5 className="text-[10px] font-bold text-guild-primary uppercase border-b border-parchment-300 pb-1 mb-2">
                       Skill
                     </h5>
@@ -396,7 +395,7 @@ export default function Status() {
                     </ul>
                   </div>
 
-                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                  <div>
                     <h5 className="text-[10px] font-bold text-guild-primary uppercase border-b border-parchment-300 pb-1 mb-2">
                       Magic
                     </h5>
@@ -407,7 +406,7 @@ export default function Status() {
                     </ul>
                   </div>
 
-                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                  <div>
                     <div className="flex items-start justify-between mb-2">
                       <h5 className="text-[10px] font-bold text-guild-primary uppercase">
                         Weapon
