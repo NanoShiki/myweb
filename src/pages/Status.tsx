@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 
 export default function Status() {
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full max-w-6xl mx-auto space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Profile Card */}
         <aside className="lg:col-span-4 flex flex-col gap-8 pt-1">

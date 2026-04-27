@@ -3,7 +3,7 @@ import { Navigation } from "./Navigation";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-parchment-200 text-guild-ink font-serif overflow-x-hidden relative border-[8px] md:border-[12px] border-parchment-400 box-border p-4 md:p-6 flex flex-col shadow-2xl">
+    <div className="min-h-screen bg-parchment-200 text-guild-ink font-serif relative border-[8px] md:border-[12px] border-parchment-400 box-border p-4 md:p-6 flex flex-col shadow-2xl">
       <div className="fixed inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--color-guild-gold) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
       <header className="flex flex-col md:flex-row justify-between md:items-end mb-6 border-b-2 border-parchment-400 pb-4 px-2 z-10 gap-4">
         <div className="flex flex-col">
@@ -16,7 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <Navigation />
       </header>
-      <main className="flex-1 w-full max-w-6xl mx-auto relative z-10">
+      <main className="flex-1 w-full mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}

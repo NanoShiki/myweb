@@ -36,15 +36,50 @@ async function startServer() {
     const mdPath = path.join(process.cwd(), "text", "Blog", relativePath, `${folderName}.md`);
     if (fs.existsSync(mdPath)) {
       let content = fs.readFileSync(mdPath, "utf-8");
-      // Markdown image links can be ![alt](assets/img.png) or <img src="assets/img.png" />
-      // We need to rewrite `assets/...` to `/Blog/${relativePath}assets/...`
-      // First ensure relativePath ends with /
+      // Markdown image links can be ![alt](assets/img.png) or ![alt](/Blog/assets/img.png "title")
+      // We need to rewrite relative paths to point to correct API and encode spaces so markdown parsers don't fail
       let baseAssetUrl = `/Blog/${relativePath}`;
       if (!baseAssetUrl.endsWith('/')) {
          baseAssetUrl += '/';
       }
-      content = content.replace(/!\[([^\]]*)\]\((?!http|\/)([^)]+)\)/g, `![$1](${baseAssetUrl}$2)`);
-      content = content.replace(/src="(?!http|\/)([^"]+)"/g, `src="${baseAssetUrl}$1"`);
+      content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, target) => {
+        let url = target.trim();
+        let title = '';
+        const spaceIdx = target.indexOf(' ');
+        if (spaceIdx !== -1 && (target.includes('"') || target.includes('\''))) {
+          const quoteMatch = target.match(/\s+['"]([^'"]+)['"]$/);
+          if (quoteMatch) {
+            url = target.slice(0, quoteMatch.index).trim();
+            title = quoteMatch[0];
+          }
+        }
+        let finalUrl = url;
+        if (!url.startsWith('http') && !url.startsWith('#') && !url.startsWith('data:')) {
+          if (url.startsWith('/')) {
+            finalUrl = encodeURI(url);
+          } else {
+            finalUrl = encodeURI(baseAssetUrl + url);
+          }
+        }
+        // Encode parenthesis in URL because markdown chokes on them
+        finalUrl = finalUrl.replace(/\(/g, '%28').replace(/\)/g, '%29');
+        let finalTitle = title ? title : '';
+        return `![${alt}](${finalUrl}${finalTitle})`;
+      });
+
+      // Handle raw <img src="..."> tags safely
+      content = content.replace(/<img[^>]+src="([^"]+)"[^>]*>/g, (match, url) => {
+        if (!url.startsWith('http') && !url.startsWith('data:')) {
+          let finalUrl = url;
+          if (url.startsWith('/')) {
+            finalUrl = encodeURI(url);
+          } else {
+            finalUrl = encodeURI(baseAssetUrl + url);
+          }
+          return match.replace(url, finalUrl);
+        }
+        return match;
+      });
       res.send(content);
     } else {
       res.status(404).send("Markdown file not found");

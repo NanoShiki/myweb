@@ -9,6 +9,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
+import GithubSlugger from "github-slugger";
 import Zoom from "react-medium-image-zoom";
 
 import "katex/dist/katex.min.css";
@@ -128,11 +130,147 @@ function BlogList({ posts }: { posts: BlogPost[] }) {
   );
 }
 
+interface Heading {
+  id: string;
+  text: string;
+  level: number;
+}
+
+function useHeadings(content: string) {
+  const [headings, setHeadings] = useState<Heading[]>([]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const headingElements = Array.from(
+        document.querySelectorAll('.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6')
+      ) as HTMLElement[];
+      
+      const extractedHeadings = headingElements.map(el => ({
+        id: el.id,
+        text: el.innerText || el.textContent || "",
+        level: parseInt(el.tagName.replace('H', ''), 10)
+      }));
+      setHeadings(extractedHeadings);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [content]);
+
+  return headings;
+}
+
+function useScrollSpy(headings: Heading[]) {
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    if (headings.length === 0) return;
+
+    const handleScroll = () => {
+      let currentId = headings[0]?.id || "";
+      
+      // We look for the last heading that has passed the threshold mark (200px from top)
+      for (const heading of headings) {
+        const el = document.getElementById(heading.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 200) {
+            currentId = heading.id;
+          } else {
+            // Once we find a heading that is below the threshold,
+            // we stop, because the headings are in order.
+            break;
+          }
+        }
+      }
+      
+      setActiveId(currentId);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Run once on mount to set initial state
+    setTimeout(handleScroll, 100);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [headings]);
+
+  return activeId;
+}
+
+function TableOfContents({ headings, activeId }: { headings: Heading[], activeId: string }) {
+  const activeIndex = headings.findIndex(h => h.id === activeId);
+  const activePath = new Set<string>();
+  
+  if (activeIndex !== -1) {
+     let currentLevel = headings[activeIndex].level;
+     activePath.add(headings[activeIndex].id);
+     for (let i = activeIndex - 1; i >= 0; i--) {
+        if (headings[i].level < currentLevel) {
+           activePath.add(headings[i].id);
+           currentLevel = headings[i].level;
+        }
+     }
+  }
+
+  useEffect(() => {
+    if (activeId) {
+      // Small timeout to allow render to complete before scrolling
+      setTimeout(() => {
+        const activeLink = document.querySelector(`nav a[href="#${activeId}"]`);
+        if (activeLink) {
+          activeLink.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+      }, 50);
+    }
+  }, [activeId]);
+
+  return (
+    <nav className="sticky top-12 self-start w-56 shrink-0 max-h-[calc(100vh-6rem)] overflow-y-auto hidden lg:block scrollbar-thin scrollbar-thumb-parchment-400 scrollbar-track-transparent pr-2">
+      <h3 className="uppercase tracking-widest text-[10px] font-bold text-guild-secondary mb-4 flex items-center gap-2">
+         <span className="w-1.5 h-1.5 bg-guild-primary rounded-full"></span> 
+         Contents
+      </h3>
+      <ul className="space-y-2 text-sm font-sans">
+        {headings.map((heading, index) => {
+           let parentId = null;
+           for (let i = index - 1; i >= 0; i--) {
+              if (headings[i].level < heading.level) {
+                parentId = headings[i].id;
+                break;
+              }
+           }
+           
+           const isVisible = heading.level === 1 || (parentId && activePath.has(parentId));
+           if (!isVisible) return null;
+
+           return (
+             <li
+               key={heading.id}
+               style={{ paddingLeft: `${(heading.level - 1) * 0.75}rem` }}
+             >
+               <a
+                 href={`#${heading.id}`}
+                 className={`block py-0.5 text-xs transition-colors line-clamp-2 border-l-2 pl-3 ${
+                   activeId === heading.id
+                     ? "text-guild-primary font-bold border-guild-primary"
+                     : "text-guild-ink/60 hover:text-guild-ink border-transparent hover:border-parchment-400"
+                 }`}
+               >
+                 {heading.text}
+               </a>
+             </li>
+           );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 function BlogPostView({ posts }: { posts: BlogPost[] }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const post = posts.find(p => p.id === id);
   const [content, setContent] = useState<string>("Loading...");
+  
+  const headings = useHeadings(content);
+  const activeId = useScrollSpy(headings);
 
   useEffect(() => {
     if (!post) return;
@@ -151,47 +289,51 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-[80vw] w-full mx-auto space-y-6"
+      className="w-full h-full flex items-start gap-4 lg:gap-12 px-4 md:px-8 max-w-none pb-12"
     >
-      <button 
-        onClick={() => navigate("/magic-notes")}
-        className="flex items-center text-sm font-bold text-guild-primary hover:text-black transition-colors uppercase gap-1"
-      >
-        <ArrowLeft size={16} /> Back to Magic Notes
-      </button>
+      <TableOfContents headings={headings} activeId={activeId} />
+      
+      <div className="flex-1 min-w-0 md:pr-[2vw] xl:pr-[5vw]">
+        <button 
+          onClick={() => navigate("/magic-notes")}
+          className="flex items-center text-sm font-bold text-guild-secondary hover:text-guild-primary transition-colors uppercase gap-1 mb-6 font-serif"
+        >
+          <ArrowLeft size={16} /> Back to Magic Notes
+        </button>
 
-      <div className="bg-white/80 p-8 md:p-12 rounded-lg shadow-sm font-sans text-guild-ink break-words overflow-hidden w-full max-w-full
-        prose prose-stone prose-lg max-w-none 
-        prose-headings:font-serif prose-headings:font-bold prose-headings:text-black
-        prose-a:text-guild-primary prose-a:break-words
-        prose-p:break-words prose-p:[overflow-wrap:anywhere]
-        prose-img:rounded-xl prose-img:shadow-md
-        prose-pre:p-0 prose-pre:bg-transparent prose-pre:overflow-x-auto
-        prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-guild-primary"
-      >
-        <div className="border-b-2 border-parchment-300 pb-6 mb-8">
-          <h1 className="text-4xl md:text-5xl text-black font-bold mb-4 font-serif leading-tight">{post.title}</h1>
-          <div className="flex items-center text-guild-secondary text-sm font-bold">
-            <span className="flex items-center gap-1.5 mr-4"><Calendar size={16} /> {post.date}</span>
-            <div className="flex flex-wrap gap-2">
-              {post.categories.map(c => <span key={c} className="bg-guild-primary/10 text-guild-primary px-2.5 py-1 rounded text-xs tracking-wider uppercase">{c}</span>)}
+        <div className="bg-white/80 p-8 md:p-12 rounded-lg shadow-sm font-sans text-guild-ink break-words overflow-hidden w-full max-w-full
+          prose prose-stone max-w-none 
+          prose-headings:font-serif prose-headings:font-bold prose-headings:text-black
+          prose-a:text-guild-primary prose-a:break-words
+          prose-p:break-words prose-p:[overflow-wrap:anywhere]
+          prose-img:rounded-xl prose-img:shadow-md prose-img:my-4
+          prose-pre:p-0 prose-pre:bg-transparent prose-pre:overflow-x-auto
+          prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-guild-primary"
+        >
+          <div className="border-b-2 border-parchment-300 pb-6 mb-8">
+            <h1 className="text-4xl md:text-5xl text-black font-bold mb-4 font-serif leading-tight">{post.title}</h1>
+            <div className="flex items-center text-guild-secondary text-[11px] font-bold uppercase tracking-widest font-sans">
+              <span className="flex items-center gap-1.5 mr-4"><Calendar size={14} /> {post.date}</span>
+              <div className="flex flex-wrap gap-2">
+                {post.categories.map(c => <span key={c} className="bg-parchment-200 text-guild-secondary border border-parchment-300 px-2 py-0.5 rounded">{c}</span>)}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="markdown-body">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
-            components={{
-              img: ({ node, ...props }) => (
-                <Zoom>
-                  <img {...props} className="mx-auto rounded-lg shadow-md max-h-[600px] object-contain" />
-                </Zoom>
-              )
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+          <div className="markdown-body text-[15px] leading-[1.8] text-[#2C2621]">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeRaw, rehypeSlug, rehypeKatex, rehypeHighlight]}
+              components={{
+                img: ({ node, ...props }) => (
+                  <Zoom>
+                    <img {...props} className="mx-auto rounded-lg shadow-md max-h-[600px] object-contain" />
+                  </Zoom>
+                )
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
         </div>
       </div>
     </motion.div>
