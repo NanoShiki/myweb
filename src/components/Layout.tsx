@@ -8,7 +8,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <header className="flex flex-col md:flex-row justify-between md:items-end mb-6 border-b-2 border-parchment-400 pb-4 px-2 z-10 gap-4">
         <div className="flex flex-col">
           <h1 className="text-4xl font-extrabold tracking-tight text-guild-gold drop-shadow-sm font-sans uppercase">
-            ORARIO <span className="text-guild-primary font-light">DEV'S LOG</span>
+            NanoShiki's <span className="text-guild-primary font-light">ORARIO</span>
           </h1>
           <p className="text-xs italic text-guild-secondary uppercase tracking-[0.2em] mt-1 font-serif">
             Tower of Babel Network • Established Year 1024

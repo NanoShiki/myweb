@@ -1,5 +1,16 @@
 import { motion } from "motion/react";
-import { Github, Tv, Mail, Code, MapPin, Award, BookOpen, Sword, Coffee, ArrowRight } from "lucide-react";
+import {
+  Github,
+  Tv,
+  Mail,
+  Code,
+  MapPin,
+  Award,
+  BookOpen,
+  Sword,
+  Coffee,
+  ArrowRight,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Status() {
@@ -8,17 +19,24 @@ export default function Status() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Profile Card */}
         <aside className="lg:col-span-4 flex flex-col gap-4">
-          <motion.div 
+          <motion.div
             whileHover={{ y: -2 }}
             className="bg-parchment-100 border-2 border-parchment-400 rounded-lg p-5 shadow-inner relative"
           >
             <div className="absolute -top-3 -left-3 w-8 h-8 bg-parchment-400 rotate-45 flex items-center justify-center text-white font-bold text-lg pointer-events-none z-10 shadow-sm">
               <span className="-rotate-45">Lv.4</span>
             </div>
-            
+
             <div className="flex flex-col items-center space-y-4 mt-2">
               <div className="w-32 h-32 rounded-full border-4 border-guild-gold shadow-md overflow-hidden bg-parchment-300 flex items-center justify-center relative">
-                <img src="/avatar.jpg" alt="NanoShiki" className="w-full h-full object-cover absolute z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <img
+                  src="/avatar.jpg"
+                  alt="NanoShiki"
+                  className="w-full h-full object-cover absolute z-10"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
                 {/* Fallback avatar image */}
                 <span className="text-4xl">ð§ââï¸</span>
               </div>
@@ -34,25 +52,48 @@ export default function Status() {
           </motion.div>
 
           <div className="bg-guild-ink text-parchment-200 p-4 rounded-lg flex flex-col gap-2 shadow-lg">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-parchment-400 mb-1">Familia Links</h2>
-            <div className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group">
-              <div className="w-2 h-2 bg-red-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2"><Tv size={14} /> Bilibili / ForgeChannel</span>
-            </div>
-            <div className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-parchment-400 mb-1">
+              Familia Links
+            </h2>
+            <a
+              href="https://space.bilibili.com/253377872"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+            >
+              <div className="w-2 h-2 bg-pink-400 rounded-full group-hover:scale-125 transition-transform"></div>
+              <span className="text-sm flex items-center gap-2">
+                <Tv size={14} /> Bilibili
+              </span>
+            </a>
+            <a
+              href="https://github.com/NanoShiki"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+            >
               <div className="w-2 h-2 bg-blue-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2"><Github size={14} /> Guild Hub / GitHub</span>
-            </div>
-            <div className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group">
-              <div className="w-2 h-2 bg-green-400 rounded-full group-hover:scale-125 transition-transform"></div>
-              <span className="text-sm flex items-center gap-2"><Mail size={14} /> Messenger Owl</span>
-            </div>
+              <span className="text-sm flex items-center gap-2">
+                <Github size={14} /> GitHub
+              </span>
+            </a>
+            <a
+              href="https://www.zhihu.com/people/nanoshiki"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 py-1 hover:bg-[#745142] px-2 rounded cursor-pointer transition-colors group"
+            >
+              <div className="w-2 h-2 bg-sky-400 rounded-full group-hover:scale-125 transition-transform"></div>
+              <span className="text-sm flex items-center gap-2">
+                <BookOpen size={14} /> Zhihu
+              </span>
+            </a>
           </div>
         </aside>
 
         {/* Right Column: Previews */}
         <section className="lg:col-span-8 flex flex-col gap-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex-1 bg-parchment-100 border-2 border-parchment-400 p-6 rounded-lg flex flex-col overflow-hidden relative shadow-inner"
@@ -74,15 +115,22 @@ export default function Status() {
                 </h3>
                 <ul className="space-y-3 flex-1 mb-4">
                   <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="text-guild-secondary mr-2 font-mono">04-25</span>
+                    <span className="text-guild-secondary mr-2 font-mono">
+                      04-25
+                    </span>
                     Exploring the Depths: Optimizing React Render Cycles
                   </li>
                   <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="text-guild-secondary mr-2 font-mono">04-12</span>
+                    <span className="text-guild-secondary mr-2 font-mono">
+                      04-12
+                    </span>
                     The Architecture of a Scalable Backend Relic
                   </li>
                 </ul>
-                <Link to="/magic-notes" className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto">
+                <Link
+                  to="/magic-notes"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
+                >
                   Read Notes <ArrowRight size={12} className="ml-1" />
                 </Link>
               </div>
@@ -102,7 +150,10 @@ export default function Status() {
                     Aegis Auth Provider
                   </li>
                 </ul>
-                <Link to="/magic-records" className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto">
+                <Link
+                  to="/magic-records"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
+                >
                   View Arsenal <ArrowRight size={12} className="ml-1" />
                 </Link>
               </div>
@@ -113,15 +164,273 @@ export default function Status() {
                   <Coffee size={14} /> Latest Tavern Rumor
                 </h3>
                 <p className="text-xs text-guild-ink/80 italic font-serif leading-relaxed pl-3 border-l-2 border-parchment-400 mb-4">
-                  "The deeper you go into a legacy codebase, the more you realize that the original architects weren't constructing a tower to reach the heavens, but a labyrinth to trap the minotaur."
+                  "The deeper you go into a legacy codebase, the more you
+                  realize that the original architects weren't constructing a
+                  tower to reach the heavens, but a labyrinth to trap the
+                  minotaur."
                 </p>
-                <Link to="/tavern-rumors" className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end">
+                <Link
+                  to="/tavern-rumors"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end"
+                >
                   More Whispers <ArrowRight size={12} className="ml-1" />
                 </Link>
               </div>
             </div>
           </motion.div>
         </section>
+      </div>
+
+      <div className="bg-parchment-100 border-2 border-parchment-400 p-6 rounded-lg shadow-inner mt-8">
+        <h2 className="text-xl font-bold border-b border-parchment-300 mb-6 pb-2 text-guild-gold font-serif uppercase tracking-widest relative z-10">
+          My Favorite Characters
+        </h2>
+
+        <div className="bg-white/40 border border-parchment-300 p-6 rounded hover:border-guild-primary transition-colors">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Column: Avatar & Basic Specs */}
+            <div className="flex-shrink-0 w-full lg:w-64 flex flex-col items-center">
+              <div className="w-32 h-32 rounded bg-[#9bcfa3]/20 border-2 border-[#9bcfa3] overflow-hidden flex items-center justify-center shadow-md relative">
+                <img
+                  src="/avatar.jpg"
+                  alt="Ryuu Lion"
+                  className="absolute inset-0 w-full h-full object-cover z-10"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+                <span className="text-5xl">🧝‍♀️</span>
+              </div>
+              <h3 className="text-lg font-bold font-serif text-guild-ink mt-3">
+                Ryuu Lion
+              </h3>
+              <div className="text-xs font-bold text-white uppercase tracking-widest bg-guild-primary px-3 py-1 rounded mt-1 shadow-sm">
+                Level 6
+              </div>
+              <div className="text-xs text-guild-secondary italic mt-1 font-serif">
+                "Gale" (疾風)
+              </div>
+
+              <div className="w-full mt-6 space-y-4">
+                <div>
+                  <h4 className="text-[10px] h-6 flex items-center justify-center font-bold uppercase tracking-widest text-white bg-guild-secondary rounded mb-2">
+                    Characteristics
+                  </h4>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Race
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        Elf
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Gender
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        Female
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">Age</span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        21
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Hair Color
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        Golden-Blonde
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Eye Color
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        Sky Blue
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Height
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        165 cm
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[10px] h-6 flex items-center justify-center font-bold uppercase tracking-widest text-white bg-guild-secondary rounded mb-2">
+                    Professional Status
+                  </h4>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Affiliation
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right text-guild-gold font-bold">
+                        Hestia Familia
+                        <br />
+                        <span className="font-normal text-guild-ink/80">
+                          Hostess of Fertility
+                        </span>
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Previous
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right text-guild-gold font-bold">
+                        Astraea Familia
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Occupation
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        Adventurer
+                        <br />
+                        Waitress
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Level
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        6
+                      </span>
+                    </div>
+                    <div className="flex border-b border-parchment-200 pb-1">
+                      <span className="font-bold text-guild-ink w-20">
+                        Achieved Floor
+                      </span>
+                      <span className="text-guild-ink/80 flex-1 text-right">
+                        60
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Middle Column: Status Bars */}
+            <div className="flex-1 flex flex-col gap-6">
+              <div className="bg-parchment-100 rounded p-4 border border-parchment-300">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-white bg-guild-primary h-6 flex items-center justify-center rounded mb-4">
+                  Status
+                </h4>
+                <div className="space-y-4">
+                  {[
+                    { label: "Strength", rank: "I", value: 45 },
+                    { label: "Endurance", rank: "I", value: 25 },
+                    { label: "Dexterity", rank: "I", value: 97 },
+                    { label: "Agility", rank: "H", value: 100 },
+                    { label: "Magic", rank: "I", value: 71 },
+                  ].map((stat, i) => (
+                    <div key={i} className="flex items-center text-xs">
+                      <span className="w-20 font-bold text-guild-ink">
+                        {stat.label}
+                      </span>
+                      <span className="w-10 font-mono font-bold text-guild-primary text-right mr-3">
+                        {stat.rank}
+                        {stat.value}
+                      </span>
+                      <div className="flex-1 h-2 bg-parchment-300 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-guild-primary/70 rounded-full"
+                          style={{
+                            width: `${Math.max((stat.value / 999) * 100, 2)}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="border-t border-parchment-300 pt-3 mt-4 space-y-2">
+                    {[
+                      { label: "Hunter", rank: "G" },
+                      { label: "Mage", rank: "I" },
+                      { label: "Abnormal Resistance", rank: "G" },
+                      { label: "Magic Resistance", rank: "I" },
+                      { label: "Chain Attack", rank: "I" },
+                    ].map((stat, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-xs py-1 border-b border-parchment-200 last:border-0 hover:bg-parchment-200/50 px-1 -mx-1 rounded transition-colors"
+                      >
+                        <span className="font-bold text-guild-ink">
+                          {stat.label}
+                        </span>
+                        <span className="font-mono font-bold text-guild-gold/80 px-2 py-0.5 bg-guild-gold/10 rounded">
+                          {stat.rank}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Skills & Magic */}
+            <div className="flex-1 flex flex-col gap-6">
+              <div>
+                <div className="space-y-4">
+                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                    <h5 className="text-[10px] font-bold text-guild-primary uppercase border-b border-parchment-300 pb-1 mb-2">
+                      Skill
+                    </h5>
+                    <ul className="text-xs text-guild-ink/80 text-right space-y-1 font-medium">
+                      <li>Fairy Serenade</li>
+                      <li>Mind Load</li>
+                      <li>Aero Mana</li>
+                      <li>Astrae Varmas</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                    <h5 className="text-[10px] font-bold text-guild-primary uppercase border-b border-parchment-300 pb-1 mb-2">
+                      Magic
+                    </h5>
+                    <ul className="text-xs text-guild-gold text-right space-y-1 font-bold">
+                      <li>Luminous Wind</li>
+                      <li>Noah Heal</li>
+                      <li>Astraea Record</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-parchment-100/50 p-3 rounded border border-parchment-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <h5 className="text-[10px] font-bold text-guild-primary uppercase">
+                        Weapon
+                      </h5>
+                      <div className="text-xs text-guild-ink/80 text-right space-y-1 font-medium">
+                        <div>Alf's Justitia</div>
+                        <div>Kodachi Futaba</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start justify-between border-t border-parchment-200 pt-2 mt-2">
+                      <h5 className="text-[10px] font-bold text-guild-primary uppercase">
+                        Equipment
+                      </h5>
+                      <div className="text-xs text-guild-ink/80 text-right space-y-1 font-medium">
+                        Spirit's Clothes of Justice
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

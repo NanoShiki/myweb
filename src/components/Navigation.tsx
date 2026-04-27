@@ -6,7 +6,7 @@ export function Navigation() {
   const location = useLocation();
 
   const links = [
-    { name: "Status", path: "/", icon: Scroll },
+    { name: "ORARIO", path: "/", icon: Scroll },
     { name: "Magic Notes", path: "/magic-notes", icon: BookOpen },
     { name: "Magic Records", path: "/magic-records", icon: Sword },
     { name: "Tavern Rumors", path: "/tavern-rumors", icon: Coffee },
