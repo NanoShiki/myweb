@@ -1,0 +1,2 @@
+github上vscode的仓库issue有很多人有这个问题.
+解决方案是在设置里面把github copilot禁用掉. 可能是copilot的chat窗口的问题.

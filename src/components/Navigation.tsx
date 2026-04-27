@@ -8,14 +8,13 @@ export function Navigation() {
   const links = [
     { name: "ORARIO", path: "/", icon: Scroll },
     { name: "Magic Notes", path: "/magic-notes", icon: BookOpen },
-    { name: "Magic Records", path: "/magic-records", icon: Sword },
     { name: "Tavern Rumors", path: "/tavern-rumors", icon: Coffee },
   ];
 
   return (
     <nav className="flex flex-wrap gap-2 md:gap-4 text-sm font-bold uppercase tracking-wider font-sans z-20">
       {links.map((link) => {
-        const isActive = location.pathname === link.path;
+        const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
         const Icon = link.icon;
         
         return (

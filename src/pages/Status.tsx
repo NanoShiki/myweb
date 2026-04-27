@@ -134,31 +134,8 @@ export default function Status() {
                 </Link>
               </div>
 
-              {/* Magic Records Preview */}
-              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
-                <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
-                  <Sword size={14} /> Magic Records Preview
-                </h3>
-                <ul className="space-y-3 flex-1 mb-4">
-                  <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="w-1.5 h-1.5 bg-guild-primary inline-block rounded-full mr-2"></span>
-                    Hestia Dashboard
-                  </li>
-                  <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="w-1.5 h-1.5 bg-guild-primary inline-block rounded-full mr-2"></span>
-                    Aegis Auth Provider
-                  </li>
-                </ul>
-                <Link
-                  to="/magic-records"
-                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
-                >
-                  View Arsenal <ArrowRight size={12} className="ml-1" />
-                </Link>
-              </div>
-
               {/* Tavern Rumors Preview */}
-              <div className="md:col-span-2 bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
+              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
                 <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
                   <Coffee size={14} /> Latest Tavern Rumor
                 </h3>
@@ -170,7 +147,7 @@ export default function Status() {
                 </p>
                 <Link
                   to="/tavern-rumors"
-                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
                 >
                   More Whispers <ArrowRight size={12} className="ml-1" />
                 </Link>
