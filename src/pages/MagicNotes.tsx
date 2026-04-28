@@ -319,7 +319,7 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
               </div>
             </div>
           </div>
-          <div className="markdown-body text-[15px] leading-[1.8] text-[#2C2621]">
+          <div className="markdown-body text-[16px] md:text-[17px] leading-[1.8] text-[#2C2621]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeRaw, rehypeSlug, rehypeKatex, rehypeHighlight]}

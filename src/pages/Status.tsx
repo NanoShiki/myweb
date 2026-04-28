@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   Github,
@@ -13,19 +14,51 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+interface BlogPost {
+  id: string;
+  title: string;
+  date: string;
+  createdTs: number;
+}
+
+interface Rumor {
+  filename: string;
+  date: string;
+  content: string;
+}
+
 export default function Status() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [rumors, setRumors] = useState<Rumor[]>([]);
+
+  useEffect(() => {
+    fetch("/api/blog/config")
+      .then(res => res.json())
+      .then(data => {
+        if (data?.posts) {
+          setPosts([...data.posts].sort((a, b) => b.createdTs - a.createdTs).slice(0, 6));
+        }
+      })
+      .catch(console.error);
+
+    fetch("/api/thoughts")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setRumors(data.slice(0, 4));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6">
         {/* Left Column: Profile Card */}
         <aside className="lg:col-span-4 flex flex-col gap-8 pt-1">
           <div
             className="relative flex flex-col items-center"
           >
-            <div className="absolute -top-3 -left-3 w-8 h-8 bg-parchment-400 rotate-45 flex items-center justify-center text-white font-bold text-lg pointer-events-none z-10 shadow-sm">
-              <span className="-rotate-45">Lv.4</span>
-            </div>
-
             <div className="flex flex-col items-center space-y-4 mt-2">
               <div className="w-32 h-32 rounded-full border-4 border-guild-gold shadow-md overflow-hidden bg-parchment-300 flex items-center justify-center relative">
                 <img
@@ -106,48 +139,71 @@ export default function Status() {
               ORARIO
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
               {/* Magic Notes Preview */}
-              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
-                <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
-                  <BookOpen size={14} /> Magic Notes Preview
-                </h3>
-                <ul className="space-y-3 flex-1 mb-4">
-                  <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="text-guild-secondary mr-2 font-mono">
-                      04-25
-                    </span>
-                    Exploring the Depths: Optimizing React Render Cycles
-                  </li>
-                  <li className="text-xs text-guild-ink/80 hover:text-guild-primary transition-colors leading-tight line-clamp-2">
-                    <span className="text-guild-secondary mr-2 font-mono">
-                      04-12
-                    </span>
-                    The Architecture of a Scalable Backend Relic
-                  </li>
-                </ul>
+              <div className="flex flex-col group">
+                <Link to="/magic-notes" className="text-sm font-bold text-guild-primary uppercase mb-4 flex items-center gap-2 hover:text-guild-ink transition-colors">
+                  <BookOpen size={16} /> Magic Notes Preview
+                </Link>
+                <div className="flex-1 flex flex-col gap-4">
+                  {posts.length > 0 ? (
+                    posts.map(post => (
+                      <Link to={`/magic-notes/post/${encodeURIComponent(post.id)}`} key={post.id} className="block group/item">
+                        <div className="text-xs text-guild-secondary font-mono mb-1">{post.date}</div>
+                        <h4 className="text-[13px] font-bold text-guild-ink group-hover/item:text-guild-primary transition-colors leading-snug line-clamp-2">
+                          {post.title}
+                        </h4>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="text-xs text-guild-secondary italic">Loading notes...</div>
+                  )}
+                </div>
                 <Link
                   to="/magic-notes"
-                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-6 pt-4 border-t border-parchment-300"
                 >
-                  Read Notes <ArrowRight size={12} className="ml-1" />
+                  All Notes <ArrowRight size={12} className="ml-1" />
                 </Link>
               </div>
 
               {/* Tavern Rumors Preview */}
-              <div className="bg-parchment-100 border-2 border-parchment-400 shadow-inner p-5 rounded-lg flex flex-col hover:border-guild-primary transition-colors">
-                <h3 className="text-sm font-bold text-guild-primary uppercase mb-3 flex items-center gap-2">
-                  <Coffee size={14} /> Latest Tavern Rumor
-                </h3>
-                <p className="text-xs text-guild-ink/80 italic font-serif leading-relaxed pl-3 border-l-2 border-parchment-400 mb-4">
-                  "The deeper you go into a legacy codebase, the more you
-                  realize that the original architects weren't constructing a
-                  tower to reach the heavens, but a labyrinth to trap the
-                  minotaur."
-                </p>
+              <div className="flex flex-col group">
+                <Link to="/tavern-rumors" className="text-sm font-bold text-guild-primary uppercase mb-4 flex items-center gap-2 hover:text-guild-ink transition-colors">
+                  <Coffee size={16} /> Latest Tavern Rumors
+                </Link>
+                <div className="flex-1 flex flex-col gap-4 relative">
+                  {/* Decorative timeline line */}
+                  <div className="absolute left-[3px] top-2 bottom-0 w-px bg-parchment-300"></div>
+                  
+                  {rumors.length > 0 ? (
+                    rumors.map(rumor => {
+                      const dateObj = new Date(rumor.date);
+                      const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      // Remove markdown images entirely, then strip symbols
+                      const cleanContent = rumor.content
+                        .replace(/!\[.*?\]\(.*?\)/g, '')
+                        .replace(/[#*`_\]\[()]/g, '')
+                        .trim()
+                        .slice(0, 100);
+                      
+                      return (
+                        <div key={rumor.filename} className="relative pl-5 pb-2">
+                          <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-parchment-200 border-2 border-guild-primary z-10"></div>
+                          <div className="text-[10px] text-guild-secondary font-mono mb-1">{displayDate}</div>
+                          <p className="text-xs text-guild-ink/80 italic font-serif leading-relaxed line-clamp-3">
+                            "{cleanContent}{rumor.content.length > 100 ? '...' : ''}"
+                          </p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="pl-5 text-xs text-guild-secondary italic">Listening to whispers...</div>
+                  )}
+                </div>
                 <Link
                   to="/tavern-rumors"
-                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-auto"
+                  className="text-[10px] font-bold uppercase tracking-wider text-guild-secondary hover:text-guild-primary flex items-center justify-end mt-6 pt-4 border-t border-parchment-300"
                 >
                   More Whispers <ArrowRight size={12} className="ml-1" />
                 </Link>
@@ -168,7 +224,7 @@ export default function Status() {
             <div className="flex-shrink-0 w-full lg:w-64 flex flex-col items-center">
               <div className="w-32 h-32 rounded bg-[#9bcfa3]/20 border-2 border-[#9bcfa3] overflow-hidden flex items-center justify-center shadow-md relative">
                 <img
-                  src="/avatar.jpg"
+                  src="/ryuu_lion.png"
                   alt="Ryuu Lion"
                   className="absolute inset-0 w-full h-full object-cover z-10"
                   onError={(e) => {

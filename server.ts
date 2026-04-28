@@ -105,17 +105,17 @@ async function startServer() {
         // extract YYYY-MM-DD-HH-MM
         const match = f.match(/^(\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2})\.md$/);
         const dateStr = match ? match[1] : null;
-        let date = new Date(0);
+        let isoStr = "";
         if (dateStr) {
-          const [y, m, d, h, min] = dateStr.split("-").map(Number);
-          date = new Date(y, m - 1, d, h, min);
+          const [y, m, d, h, min] = dateStr.split("-").map(s => s.padStart(2, '0'));
+          isoStr = `${y}-${m}-${d}T${h}:${min}:00`;
         } else {
           // fallback to stats
-          date = fs.statSync(path.join(thoughtDir, f)).birthtime;
+          isoStr = fs.statSync(path.join(thoughtDir, f)).birthtime.toISOString();
         }
         return {
           filename: f,
-          date: date.toISOString(),
+          date: isoStr,
           content: content,
         };
       });
