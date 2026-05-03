@@ -103,7 +103,7 @@ export function readBlogPost(postPath: string) {
   }
 
   const markdownPath = resolveWithin(
-    path.join(repoRoot, "text"),
+    blogRoot,
     relativePath,
     `${folderName}.md`,
   );
