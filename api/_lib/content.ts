@@ -3,10 +3,31 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(moduleDir, "..", "..");
+const candidateRoots = Array.from(
+  new Set(
+    [
+      process.env.LAMBDA_TASK_ROOT,
+      process.cwd(),
+      path.resolve(moduleDir, "..", ".."),
+      path.resolve(moduleDir, "..", "..", "..", ".."),
+    ].filter((value): value is string => Boolean(value)),
+  ),
+);
+
+const repoRoot =
+  candidateRoots.find((root) => fs.existsSync(path.join(root, "text", "Blog", "config.json"))) ??
+  path.resolve(moduleDir, "..", "..");
 const blogRoot = path.join(repoRoot, "text", "Blog");
 const blogArchiveRoot = path.join(blogRoot, "archive");
 const thoughtRoot = path.join(repoRoot, "text", "Thought");
+
+function decodePath(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 function resolveWithin(root: string, ...segments: string[]) {
   const resolved = path.resolve(root, ...segments);
@@ -73,7 +94,7 @@ export function readBlogConfig() {
 }
 
 export function readBlogPost(postPath: string) {
-  const relativePath = postPath.replace(/^\/Blog\//, "");
+  const relativePath = decodePath(postPath).replace(/^\/Blog\//, "");
   const parts = relativePath.split("/").filter(Boolean);
   const folderName = parts[parts.length - 1];
 
@@ -147,7 +168,7 @@ function contentTypeFor(filePath: string) {
 }
 
 export function readBlogAsset(assetPath: string) {
-  const resolved = resolveWithin(blogArchiveRoot, assetPath);
+  const resolved = resolveWithin(blogArchiveRoot, decodePath(assetPath));
   if (!resolved || !fs.existsSync(resolved)) {
     return null;
   }
@@ -159,7 +180,7 @@ export function readBlogAsset(assetPath: string) {
 }
 
 export function readThoughtAsset(assetPath: string) {
-  const resolved = resolveWithin(thoughtRoot, assetPath);
+  const resolved = resolveWithin(thoughtRoot, decodePath(assetPath));
   if (!resolved || !fs.existsSync(resolved)) {
     return null;
   }
