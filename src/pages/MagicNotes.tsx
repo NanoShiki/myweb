@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Route, Routes, useParams, useNavigate } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 import { motion } from "motion/react";
-import { Calendar, Tag, ArrowLeft } from "lucide-react";
+import { Tag, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -94,12 +94,6 @@ function BlogList({ posts }: { posts: BlogPost[] }) {
                 `}
               >
                 <div className="relative z-10 cursor-pointer h-full flex flex-col">
-                  <div className="flex items-center space-x-2 text-xs font-bold font-sans text-guild-primary uppercase mb-2">
-                    <span className="w-2 h-2 bg-guild-primary rotate-45 inline-block mr-1"></span> 
-                    <Calendar size={12} className="inline" />
-                    <span>{post.date}</span>
-                  </div>
-                  
                   <h2 className="text-lg font-bold text-guild-ink mb-2 leading-tight group-hover:text-guild-primary transition-colors font-sans">
                     {post.title}
                   </h2>
@@ -313,7 +307,6 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
           <div className="border-b-2 border-parchment-300 pb-6 mb-8">
             <h1 className="text-4xl md:text-5xl text-black font-bold mb-4 font-serif leading-tight">{post.title}</h1>
             <div className="flex items-center text-guild-secondary text-[11px] font-bold uppercase tracking-widest font-sans">
-              <span className="flex items-center gap-1.5 mr-4"><Calendar size={14} /> {post.date}</span>
               <div className="flex flex-wrap gap-2">
                 {post.categories.map(c => <span key={c} className="bg-parchment-200 text-guild-secondary border border-parchment-300 px-2 py-0.5 rounded">{c}</span>)}
               </div>
