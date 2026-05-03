@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = process.cwd();
+const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(moduleDir, "..", "..");
 const blogRoot = path.join(repoRoot, "text", "Blog");
 const blogArchiveRoot = path.join(blogRoot, "archive");
 const thoughtRoot = path.join(repoRoot, "text", "Thought");
