@@ -1,4 +1,4 @@
-import { readBlogAsset } from "../_lib/content";
+import { readBlogAsset } from "../_lib/content.js";
 
 export default function handler(req: any, res: any) {
   const rawPath = req.query?.path;

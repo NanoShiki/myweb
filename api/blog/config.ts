@@ -1,4 +1,4 @@
-import { readBlogConfig } from "../_lib/content";
+import { readBlogConfig } from "../_lib/content.js";
 
 export default function handler(_req: any, res: any) {
   const config = readBlogConfig();
