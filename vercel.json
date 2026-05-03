@@ -7,7 +7,7 @@
   },
   "routes": [
     {
-      "src": "/Blog/archive/(.*)",
+      "src": "/Blog/(.*)",
       "dest": "/api/blog/asset?path=$1"
     },
     {

@@ -15,11 +15,43 @@ const candidateRoots = Array.from(
 );
 
 const repoRoot =
-  candidateRoots.find((root) => fs.existsSync(path.join(root, "text", "Blog", "config.json"))) ??
+  candidateRoots.find(
+    (root) =>
+      fs.existsSync(path.join(root, "text", "Blog")) ||
+      fs.existsSync(path.join(root, "text", "Thought")),
+  ) ??
   path.resolve(moduleDir, "..", "..");
 const blogRoot = path.join(repoRoot, "text", "Blog");
 const blogArchiveRoot = path.join(blogRoot, "archive");
 const thoughtRoot = path.join(repoRoot, "text", "Thought");
+
+interface BlogPost {
+  id: string;
+  title: string;
+  date: string;
+  createdTs: number;
+  path: string;
+  categories: string[];
+}
+
+interface CategoryTreeNode {
+  name: string;
+  type: "category";
+  children: CategoryTreeNode[];
+  posts: BlogPost[];
+}
+
+const defaultBlogSite = {
+  title: "如珩的博客",
+  subtitle: "技术笔记与分享",
+  author: "如珩",
+};
+
+const ignoredBlogDirs = new Set(["assets", ".obsidian", ".git", "node_modules"]);
+const naturalCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
 
 function decodePath(value: string) {
   try {
@@ -35,6 +67,253 @@ function resolveWithin(root: string, ...segments: string[]) {
     return resolved;
   }
   return null;
+}
+
+function normalizeUrlPath(value: string) {
+  return decodePath(value)
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^Blog\//, "")
+    .replace(/\/+$/, "");
+}
+
+function pathToUrlPath(value: string) {
+  return value.split(path.sep).join("/");
+}
+
+function encodeUrlPath(value: string) {
+  const suffixIndex = value.search(/[?#]/);
+  const pathname = suffixIndex === -1 ? value : value.slice(0, suffixIndex);
+  const suffix = suffixIndex === -1 ? "" : value.slice(suffixIndex);
+
+  return `${pathname
+    .split("/")
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
+    .join("/")}${suffix}`;
+}
+
+function isIgnoredBlogDir(name: string) {
+  return ignoredBlogDirs.has(name) || name.startsWith(".");
+}
+
+function naturalCompare(a: string, b: string) {
+  return naturalCollator.compare(a, b);
+}
+
+function formatLocalDate(timestampMs: number) {
+  const date = new Date(timestampMs);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getOrderedSubdirs(dir: string) {
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !isIgnoredBlogDir(entry.name))
+    .sort((a, b) => naturalCompare(a.name, b.name));
+}
+
+function findPostMarkdownInDir(dir: string) {
+  const folderName = path.basename(dir);
+  const preferredPath = path.join(dir, `${folderName}.md`);
+  if (fs.existsSync(preferredPath)) {
+    return preferredPath;
+  }
+
+  const markdownFiles = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
+    .map((entry) => entry.name)
+    .sort((a, b) => naturalCompare(a, b));
+
+  return markdownFiles.length === 1 ? path.join(dir, markdownFiles[0]) : null;
+}
+
+function hasBlogPosts(root: string, skipArchive: boolean) {
+  const walk = (dir: string, isRoot = false): boolean => {
+    if (!fs.existsSync(dir)) {
+      return false;
+    }
+
+    if (!isRoot && findPostMarkdownInDir(dir)) {
+      return true;
+    }
+
+    return getOrderedSubdirs(dir).some((entry) => {
+      if (isRoot && skipArchive && entry.name === "archive") {
+        return false;
+      }
+      return walk(path.join(dir, entry.name));
+    });
+  };
+
+  return walk(root, true);
+}
+
+function extractTitleFromMarkdown(markdownPath: string) {
+  const content = fs.readFileSync(markdownPath, "utf-8");
+  const titleLine = content
+    .split(/\r?\n/)
+    .find((line) => /^#\s+/.test(line.trim()));
+
+  return titleLine?.trim().replace(/^#\s+/, "").trim() || path.basename(markdownPath, ".md");
+}
+
+function getBlogContentRoot() {
+  if (hasBlogPosts(blogRoot, true)) {
+    return {
+      fsRoot: blogRoot,
+      urlPrefix: "/Blog",
+      skipArchive: true,
+    };
+  }
+
+  if (hasBlogPosts(blogArchiveRoot, false)) {
+    return {
+      fsRoot: blogArchiveRoot,
+      urlPrefix: "/Blog/archive",
+      skipArchive: false,
+    };
+  }
+
+  return {
+    fsRoot: blogRoot,
+    urlPrefix: "/Blog",
+    skipArchive: true,
+  };
+}
+
+function buildBlogPost(urlPrefix: string, relPathParts: string[], dir: string) {
+  const markdownPath = findPostMarkdownInDir(dir);
+  if (!markdownPath) {
+    return null;
+  }
+
+  const markdownStats = fs.statSync(markdownPath);
+  const timestampMs = markdownStats.mtimeMs || markdownStats.birthtimeMs || Date.now();
+  const relPath = relPathParts.join("/");
+
+  return {
+    id: relPathParts.join("_"),
+    title: extractTitleFromMarkdown(markdownPath),
+    date: formatLocalDate(timestampMs),
+    createdTs: Math.floor(timestampMs / 1000),
+    path: `${urlPrefix}/${relPath}/`,
+    categories: relPathParts.slice(0, -1),
+  } satisfies BlogPost;
+}
+
+function findBlogPostsRecursive(urlPrefix: string, currentDir: string, relPathParts: string[], skipArchive: boolean) {
+  const posts: BlogPost[] = [];
+
+  for (const entry of getOrderedSubdirs(currentDir)) {
+    if (relPathParts.length === 0 && skipArchive && entry.name === "archive") {
+      continue;
+    }
+
+    const entryPath = path.join(currentDir, entry.name);
+    const nextRelPathParts = [...relPathParts, entry.name];
+    const post = buildBlogPost(urlPrefix, nextRelPathParts, entryPath);
+
+    if (post) {
+      posts.push(post);
+    } else {
+      posts.push(
+        ...findBlogPostsRecursive(urlPrefix, entryPath, nextRelPathParts, skipArchive),
+      );
+    }
+  }
+
+  return posts;
+}
+
+function getPostFolderName(post: BlogPost) {
+  return post.path.replace(/\/+$/, "").split("/").pop() ?? "";
+}
+
+function sortPosts(posts: BlogPost[]) {
+  return posts.sort((a, b) => {
+    const createdDiff = b.createdTs - a.createdTs;
+    if (createdDiff !== 0) {
+      return createdDiff;
+    }
+
+    const folderDiff = naturalCompare(getPostFolderName(b), getPostFolderName(a));
+    if (folderDiff !== 0) {
+      return folderDiff;
+    }
+
+    return b.path.localeCompare(a.path);
+  });
+}
+
+function buildCategoryTree(posts: BlogPost[]) {
+  const tree: CategoryTreeNode = {
+    name: "root",
+    type: "category",
+    children: [],
+    posts: [],
+  };
+  const categoryMap = new Map<string, CategoryTreeNode>();
+
+  for (const post of posts) {
+    let current = tree;
+    const categoryPath = ["root"];
+
+    for (const category of post.categories) {
+      categoryPath.push(category);
+      const pathKey = categoryPath.join("/");
+      let node = categoryMap.get(pathKey);
+
+      if (!node) {
+        node = {
+          name: category,
+          type: "category",
+          children: [],
+          posts: [],
+        };
+        categoryMap.set(pathKey, node);
+        current.children.push(node);
+      }
+
+      current = node;
+    }
+
+    current.posts.push(post);
+  }
+
+  for (const node of categoryMap.values()) {
+    sortPosts(node.posts);
+    node.children.sort((a, b) => naturalCompare(a.name, b.name));
+  }
+
+  tree.children.sort((a, b) => naturalCompare(a.name, b.name));
+  return tree;
+}
+
+function getBlogRelativeCandidates(value: string) {
+  const relativePath = normalizeUrlPath(value);
+  const candidates = [relativePath];
+
+  if (relativePath.startsWith("archive/")) {
+    candidates.push(relativePath.replace(/^archive\//, ""));
+  } else if (relativePath) {
+    candidates.push(`archive/${relativePath}`);
+  }
+
+  return Array.from(new Set(candidates.filter(Boolean)));
 }
 
 function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
@@ -59,13 +338,12 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
     let finalUrl = url;
     if (!url.startsWith("http") && !url.startsWith("#") && !url.startsWith("data:")) {
       if (url.startsWith("/")) {
-        finalUrl = encodeURI(url);
+        finalUrl = encodeUrlPath(url);
       } else {
-        finalUrl = encodeURI(baseAssetUrl + url);
+        finalUrl = encodeUrlPath(baseAssetUrl + url);
       }
     }
 
-    finalUrl = finalUrl.replace(/\(/g, "%28").replace(/\)/g, "%29");
     return `![${alt}](${finalUrl}${title})`;
   });
 
@@ -75,8 +353,8 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
     }
 
     const finalUrl = url.startsWith("/")
-      ? encodeURI(url)
-      : encodeURI(baseAssetUrl + url);
+      ? encodeUrlPath(url)
+      : encodeUrlPath(baseAssetUrl + url);
 
     return match.replace(url, finalUrl);
   });
@@ -85,35 +363,44 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
 }
 
 export function readBlogConfig() {
-  const configPath = path.join(blogRoot, "config.json");
-  if (!fs.existsSync(configPath)) {
+  if (!fs.existsSync(blogRoot)) {
     return null;
   }
 
-  return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  const configPath = path.join(blogRoot, "config.json");
+  const existingConfig = fs.existsSync(configPath)
+    ? JSON.parse(fs.readFileSync(configPath, "utf-8"))
+    : null;
+  const { fsRoot, urlPrefix, skipArchive } = getBlogContentRoot();
+  const posts = sortPosts(findBlogPostsRecursive(urlPrefix, fsRoot, [], skipArchive));
+
+  if (posts.length === 0 && existingConfig) {
+    return existingConfig;
+  }
+
+  return {
+    site: existingConfig?.site ?? defaultBlogSite,
+    posts,
+    categoryTree: buildCategoryTree(posts),
+  };
 }
 
 export function readBlogPost(postPath: string) {
-  const relativePath = decodePath(postPath).replace(/^\/Blog\//, "");
-  const parts = relativePath.split("/").filter(Boolean);
-  const folderName = parts[parts.length - 1];
+  for (const relativePath of getBlogRelativeCandidates(postPath)) {
+    const postDir = resolveWithin(blogRoot, relativePath);
 
-  if (!folderName) {
-    return null;
+    if (!postDir || !fs.existsSync(postDir) || !fs.statSync(postDir).isDirectory()) {
+      continue;
+    }
+
+    const markdownPath = findPostMarkdownInDir(postDir);
+    if (markdownPath) {
+      const content = fs.readFileSync(markdownPath, "utf-8");
+      return rewriteMarkdownAssetLinks(content, pathToUrlPath(path.relative(blogRoot, postDir)));
+    }
   }
 
-  const markdownPath = resolveWithin(
-    blogRoot,
-    relativePath,
-    `${folderName}.md`,
-  );
-
-  if (!markdownPath || !fs.existsSync(markdownPath)) {
-    return null;
-  }
-
-  const content = fs.readFileSync(markdownPath, "utf-8");
-  return rewriteMarkdownAssetLinks(content, relativePath);
+  return null;
 }
 
 export function listThoughts() {
@@ -168,15 +455,18 @@ function contentTypeFor(filePath: string) {
 }
 
 export function readBlogAsset(assetPath: string) {
-  const resolved = resolveWithin(blogArchiveRoot, decodePath(assetPath));
-  if (!resolved || !fs.existsSync(resolved)) {
-    return null;
+  for (const relativePath of getBlogRelativeCandidates(assetPath)) {
+    const resolved = resolveWithin(blogRoot, relativePath);
+
+    if (resolved && fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+      return {
+        body: fs.readFileSync(resolved),
+        contentType: contentTypeFor(resolved),
+      };
+    }
   }
 
-  return {
-    body: fs.readFileSync(resolved),
-    contentType: contentTypeFor(resolved),
-  };
+  return null;
 }
 
 export function readThoughtAsset(assetPath: string) {
