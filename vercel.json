@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "text/**"
+    }
+  },
+  "routes": [
+    {
+      "src": "/Blog/archive/(.*)",
+      "dest": "/api/blog/asset?path=$1"
+    },
+    {
+      "src": "/Thought/(.*)",
+      "dest": "/api/thought-asset?path=$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/.*",
+      "dest": "/index.html"
+    }
+  ]
+}
