@@ -17,7 +17,6 @@ import { Link } from "react-router-dom";
 interface BlogPost {
   id: string;
   title: string;
-  date: string;
   createdTs: number;
 }
 
@@ -149,7 +148,6 @@ export default function Status() {
                   {posts.length > 0 ? (
                     posts.map(post => (
                       <Link to={`/magic-notes/post/${encodeURIComponent(post.id)}`} key={post.id} className="block group/item">
-                        <div className="text-xs text-guild-secondary font-mono mb-1">{post.date}</div>
                         <h4 className="text-[13px] font-bold text-guild-ink group-hover/item:text-guild-primary transition-colors leading-snug line-clamp-2">
                           {post.title}
                         </h4>
