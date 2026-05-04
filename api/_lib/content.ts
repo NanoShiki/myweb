@@ -21,6 +21,7 @@ const repoRoot =
       fs.existsSync(path.join(root, "text", "Thought")),
   ) ??
   path.resolve(moduleDir, "..", "..");
+const contentConfigPath = path.join(repoRoot, "text", "config.json");
 const blogRoot = path.join(repoRoot, "text", "Blog");
 const blogArchiveRoot = path.join(blogRoot, "archive");
 const thoughtRoot = path.join(repoRoot, "text", "Thought");
@@ -39,6 +40,24 @@ interface CategoryTreeNode {
   type: "category";
   children: CategoryTreeNode[];
   posts: BlogPost[];
+}
+
+interface Thought {
+  filename: string;
+  date: string;
+  content: string;
+}
+
+interface ContentConfig {
+  site?: {
+    title: string;
+    subtitle: string;
+    author: string;
+  };
+  posts?: BlogPost[];
+  categoryTree?: CategoryTreeNode;
+  postContentByPath?: Record<string, string>;
+  thoughts?: Thought[];
 }
 
 const defaultBlogSite = {
@@ -362,75 +381,44 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
   return rewritten;
 }
 
-export function readBlogConfig() {
-  if (!fs.existsSync(blogRoot)) {
+function normalizeBlogContentKey(value: string) {
+  return normalizeUrlPath(value).replace(/^archive\//, "");
+}
+
+function readContentConfig() {
+  if (!fs.existsSync(contentConfigPath)) {
     return null;
   }
 
-  const configPath = path.join(blogRoot, "config.json");
-  const existingConfig = fs.existsSync(configPath)
-    ? JSON.parse(fs.readFileSync(configPath, "utf-8"))
-    : null;
-  const { fsRoot, urlPrefix, skipArchive } = getBlogContentRoot();
-  const posts = sortPosts(findBlogPostsRecursive(urlPrefix, fsRoot, [], skipArchive));
+  try {
+    return JSON.parse(fs.readFileSync(contentConfigPath, "utf-8")) as ContentConfig;
+  } catch (error) {
+    console.error("Failed to read text/config.json", error);
+    return null;
+  }
+}
 
-  if (posts.length === 0 && existingConfig) {
-    return existingConfig;
+export function readBlogConfig() {
+  const config = readContentConfig();
+  if (!config) {
+    return null;
   }
 
+  const posts = config.posts ?? [];
   return {
-    site: existingConfig?.site ?? defaultBlogSite,
+    site: config.site ?? defaultBlogSite,
     posts,
-    categoryTree: buildCategoryTree(posts),
+    categoryTree: config.categoryTree ?? buildCategoryTree(posts),
   };
 }
 
 export function readBlogPost(postPath: string) {
-  for (const relativePath of getBlogRelativeCandidates(postPath)) {
-    const postDir = resolveWithin(blogRoot, relativePath);
-
-    if (!postDir || !fs.existsSync(postDir) || !fs.statSync(postDir).isDirectory()) {
-      continue;
-    }
-
-    const markdownPath = findPostMarkdownInDir(postDir);
-    if (markdownPath) {
-      const content = fs.readFileSync(markdownPath, "utf-8");
-      return rewriteMarkdownAssetLinks(content, pathToUrlPath(path.relative(blogRoot, postDir)));
-    }
-  }
-
-  return null;
+  const config = readContentConfig();
+  return config?.postContentByPath?.[normalizeBlogContentKey(postPath)] ?? null;
 }
 
 export function listThoughts() {
-  if (!fs.existsSync(thoughtRoot)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(thoughtRoot)
-    .filter((file) => file.endsWith(".md"))
-    .map((file) => {
-      const fullPath = path.join(thoughtRoot, file);
-      const content = fs.readFileSync(fullPath, "utf-8");
-      const match = file.match(/^(\d{4}-\d{1,2}-\d{1,2}-\d{1,2}-\d{1,2})\.md$/);
-
-      let isoDate = "";
-      if (match) {
-        const [y, m, d, h, min] = match[1].split("-").map((value) => value.padStart(2, "0"));
-        isoDate = `${y}-${m}-${d}T${h}:${min}:00`;
-      } else {
-        isoDate = fs.statSync(fullPath).birthtime.toISOString();
-      }
-
-      return {
-        filename: file,
-        date: isoDate,
-        content,
-      };
-    })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return readContentConfig()?.thoughts ?? [];
 }
 
 function contentTypeFor(filePath: string) {
