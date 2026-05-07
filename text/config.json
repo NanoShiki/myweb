@@ -197,8 +197,13 @@
   },
   "thoughts": [
     {
-      "filename": "2026-4-27-23-00.md",
-      "date": "2026-04-27T23:00:00",
+      "filename": "我的笔记风格.md",
+      "date": "2026-05-07T11:34:05.108Z",
+      "content": "让AI总结了一下我的笔记风格, 然后让AI用这个风格输出了一下笔记, 效果相当好:\r\nWhen generating notes or explanations for this user, match their natural note-taking style:\r\n\r\n- Use plain, conversational language -- \"取\"、\"塞\"、\"达到\" over formal terminology\r\n- Short sentences, one idea per sentence\r\n- Linear flow: first X, then Y, then you get Z\r\n- Lead with the mechanism, not the definition\r\n- No headers for every paragraph -- let the prose flow\r\n- Avoid academic framing; describe what things *do*, not what they *are*\r\n\r\nExample of the right tone (from a confirmed good response):\r\n\r\n> 段落切出来之后粒度很细，一两句话一个段落。这时候再把这些小段落贪心地往一个窗口里塞，塞到 token 数达到上限就认为分好了一块，输出一个 chunk。"
+    },
+    {
+      "filename": "test.md",
+      "date": "2026-05-01T12:40:08.624Z",
       "content": "test"
     }
   ]
