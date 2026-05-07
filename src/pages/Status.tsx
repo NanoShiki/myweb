@@ -35,7 +35,7 @@ export default function Status() {
       .then(res => res.json())
       .then(data => {
         if (data?.posts) {
-          setPosts([...data.posts].sort((a, b) => b.createdTs - a.createdTs).slice(0, 6));
+          setPosts([...data.posts].sort((a, b) => b.createdTs - a.createdTs).slice(0, 8));
         }
       })
       .catch(console.error);
@@ -44,7 +44,7 @@ export default function Status() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
-          setRumors(data.slice(0, 4));
+          setRumors(data.slice(0, 2));
         }
       })
       .catch(console.error);
@@ -127,7 +127,7 @@ export default function Status() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex-1 flex flex-col relative"
+            className="flex-1 min-h-full flex flex-col relative"
           >
             {/* Background flourish */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none text-guild-gold z-0">
@@ -138,13 +138,13 @@ export default function Status() {
               ORARIO
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10 flex-1">
               {/* Magic Notes Preview */}
-              <div className="flex flex-col group">
+              <div className="flex h-full flex-col group">
                 <Link to="/magic-notes" className="text-sm font-bold text-guild-primary uppercase mb-4 flex items-center gap-2 hover:text-guild-ink transition-colors">
                   <BookOpen size={16} /> Magic Notes Preview
                 </Link>
-                <div className="flex-1 flex flex-col gap-4">
+                <div className="flex-1 flex flex-col gap-3">
                   {posts.length > 0 ? (
                     posts.map(post => (
                       <Link to={`/magic-notes/post/${encodeURIComponent(post.id)}`} key={post.id} className="block group/item">
@@ -166,7 +166,7 @@ export default function Status() {
               </div>
 
               {/* Tavern Rumors Preview */}
-              <div className="flex flex-col group">
+              <div className="flex h-full flex-col group">
                 <Link to="/tavern-rumors" className="text-sm font-bold text-guild-primary uppercase mb-4 flex items-center gap-2 hover:text-guild-ink transition-colors">
                   <Coffee size={16} /> Latest Tavern Rumors
                 </Link>
@@ -183,14 +183,14 @@ export default function Status() {
                         .replace(/!\[.*?\]\(.*?\)/g, '')
                         .replace(/[#*`_\]\[()]/g, '')
                         .trim()
-                        .slice(0, 100);
+                        .slice(0, 180);
                       
                       return (
                         <div key={rumor.filename} className="relative pl-5 pb-2">
                           <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-parchment-200 border-2 border-guild-primary z-10"></div>
                           <div className="text-[10px] text-guild-secondary font-mono mb-1">{displayDate}</div>
-                          <p className="text-xs text-guild-ink/80 italic font-serif leading-relaxed line-clamp-3">
-                            "{cleanContent}{rumor.content.length > 100 ? '...' : ''}"
+                          <p className="text-xs text-guild-ink/80 italic font-serif leading-relaxed line-clamp-5">
+                            "{cleanContent}{rumor.content.length > 180 ? '...' : ''}"
                           </p>
                         </div>
                       );

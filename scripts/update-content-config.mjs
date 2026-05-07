@@ -131,15 +131,10 @@ function getOrderedMarkdownFiles(dir) {
     .sort((a, b) => naturalCompare(a, b));
 }
 
-function findPostMarkdownInDir(dir) {
+function findFolderPostMarkdownInDir(dir) {
   const folderName = path.basename(dir);
   const preferredPath = path.join(dir, `${folderName}.md`);
-  if (fs.existsSync(preferredPath)) {
-    return preferredPath;
-  }
-
-  const markdownFiles = getOrderedMarkdownFiles(dir);
-  return markdownFiles.length === 1 ? path.join(dir, markdownFiles[0]) : null;
+  return fs.existsSync(preferredPath) ? preferredPath : null;
 }
 
 function hasBlogPosts(root, skipArchive) {
@@ -148,7 +143,11 @@ function hasBlogPosts(root, skipArchive) {
       return false;
     }
 
-    if (!isRoot && findPostMarkdownInDir(dir)) {
+    if (!isRoot && findFolderPostMarkdownInDir(dir)) {
+      return true;
+    }
+
+    if (getOrderedMarkdownFiles(dir).length > 0) {
       return true;
     }
 
@@ -286,12 +285,7 @@ function rewriteMarkdownAssetLinks(content, relativePath) {
   return rewritten;
 }
 
-function buildBlogPost(urlPrefix, relPathParts, dir, existingPostLookup) {
-  const markdownPath = findPostMarkdownInDir(dir);
-  if (!markdownPath) {
-    return null;
-  }
-
+function buildBlogEntry(urlPrefix, relPathParts, markdownPath, assetRelPathParts, existingPostLookup) {
   const rawContent = fs.readFileSync(markdownPath, "utf-8");
   const markdownStats = fs.statSync(markdownPath);
   const fallbackTimestampMs = markdownStats.mtimeMs || markdownStats.birthtimeMs || Date.now();
@@ -317,12 +311,29 @@ function buildBlogPost(urlPrefix, relPathParts, dir, existingPostLookup) {
   return {
     post,
     contentKey: relPath,
-    content: rewriteMarkdownAssetLinks(rawContent, relPath),
+    content: rewriteMarkdownAssetLinks(rawContent, assetRelPathParts.join("/")),
   };
+}
+
+function buildFolderBlogPost(urlPrefix, relPathParts, dir, existingPostLookup) {
+  const markdownPath = findFolderPostMarkdownInDir(dir);
+  if (!markdownPath) {
+    return null;
+  }
+
+  return buildBlogEntry(urlPrefix, relPathParts, markdownPath, relPathParts, existingPostLookup);
 }
 
 function findBlogPostsRecursive(urlPrefix, currentDir, relPathParts, skipArchive, existingPostLookup) {
   const entries = [];
+
+  for (const file of getOrderedMarkdownFiles(currentDir)) {
+    const markdownPath = path.join(currentDir, file);
+    const postName = path.basename(file, path.extname(file));
+    entries.push(
+      buildBlogEntry(urlPrefix, [...relPathParts, postName], markdownPath, relPathParts, existingPostLookup),
+    );
+  }
 
   for (const entry of getOrderedSubdirs(currentDir)) {
     if (relPathParts.length === 0 && skipArchive && entry.name === "archive") {
@@ -331,7 +342,7 @@ function findBlogPostsRecursive(urlPrefix, currentDir, relPathParts, skipArchive
 
     const entryPath = path.join(currentDir, entry.name);
     const nextRelPathParts = [...relPathParts, entry.name];
-    const blogEntry = buildBlogPost(urlPrefix, nextRelPathParts, entryPath, existingPostLookup);
+    const blogEntry = buildFolderBlogPost(urlPrefix, nextRelPathParts, entryPath, existingPostLookup);
 
     if (blogEntry) {
       entries.push(blogEntry);
