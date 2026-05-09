@@ -6,6 +6,16 @@
   },
   "posts": [
     {
+      "id": "AI_记忆系统 NanoMemory",
+      "title": "记忆系统 NanoMemory",
+      "date": "2026-05-09",
+      "createdTs": 1778303554,
+      "path": "/Blog/AI/记忆系统 NanoMemory/",
+      "categories": [
+        "AI"
+      ]
+    },
+    {
       "id": "AI_Harness Engineering",
       "title": "Harness Engineering",
       "date": "2026-05-09",
@@ -159,6 +169,16 @@
         "children": [],
         "posts": [
           {
+            "id": "AI_记忆系统 NanoMemory",
+            "title": "记忆系统 NanoMemory",
+            "date": "2026-05-09",
+            "createdTs": 1778303554,
+            "path": "/Blog/AI/记忆系统 NanoMemory/",
+            "categories": [
+              "AI"
+            ]
+          },
+          {
             "id": "AI_Harness Engineering",
             "title": "Harness Engineering",
             "date": "2026-05-09",
@@ -295,6 +315,7 @@
   },
   "postContentByPath": {
     "其他/mac版vscode耗电异常问题的解决方案": "github上vscode的仓库issue有很多人有这个问题.\n解决方案是在设置里面把github copilot禁用掉. 可能是copilot的chat窗口的问题.",
+    "AI/记忆系统 NanoMemory": "# 记忆系统 NanoMemory\n\n让ai根据下面的设计简单跑了一个: https://github.com/NanoShiki/NanoMemory.git\n\n# 项目定位\n\nNanoMemory是一个开源项目.\n\n本项目开发一个skill, 让市面上的agent添加这个skill之后能够拥有记忆的能力.\n\n# 设计理念\n\n我个人认为记忆系统本身要存的东西其实是不多的, 用户偏好, 项目开发进度, 情景信息等等. 真正需要大量说明的文档, 基本都抽出来放在知识库内.\n\n所以这个记忆系统很简单, 就是将记忆直接存在md文档中, 模型通过调用skill内的工具读取文档获取记忆, 或者提取信息转化为记忆. 并且在skill.md中说明工作流, 及时更新和整理记忆文档.\n\n---\n\n# 架构\n\n设计三个模块: 工作记忆(短期), 情景记忆(长期), 语义记忆(长期).\n\n在skill中也会提供对记忆进行操作的脚本工具.\n\n每次完成一轮对话后, 判断是否有内容需要记忆, 如果有的话, 模型提取需要记忆的内容, 并调用记忆工具来存储记忆.\n\n每次调用模型时, 让模型主动读取工作记忆, 如果有需要, 模型可以调用记忆工具检索长期记忆.\n\n## 工作记忆\n\n工作记忆存储压缩后的上下文, 以及由模型判断需要单独保存到工作记忆的内容, 比如开发进度.\n\n当有新内容写入工作记忆文档时, 让模型判断是否要遗忘过时的工作记忆, 以及是否有工作记忆需要提升为长期记忆(情景记忆或语义记忆), 更新相关记忆文件.\n\n工作记忆不会太长, 会保持高频读写, 及时整理.\n\n**每个项目有自己的工作记忆**\n\n## 情景记忆\n\n主要记录干了什么事情. 比如早上八点开了个会等等.\n\n当有新内容写入情景记忆文档时, 判断是否要遗忘无效或过时的情景记忆\n\n**情景记忆是全局的, 跨项目有效.**\n\n## 语义记忆\n\n主要记录用户偏好, 项目信息等等. 比如用户是一名python程序员.\n\n当有新内容写入语义记忆文档时, 判断是否要遗忘无效或过时的情景记忆\n\n**语义记忆是全局的, 跨项目有效.**\n\n## 目录结构\n\n记忆的目录为\n\n项目根目录/memory/working/<项目名称>/...(工作记忆md文档)\n\n项目根目录/memory/episodic/...(情景记忆md文档)\n\n项目根目录/memory/semantic/...(语义记忆md文档)\n\n工作记忆每个项目只有一个md文档, 每次\"压缩上下文\"都要从工作记忆中提取需要的记忆到情景记忆和语义记忆(如果认为没什么需要提取的, 可以不提取), 并精简工作记忆(工作记忆会塞进上下文, 所以保持工作记忆的简洁)\n\n情景记忆和语义记忆只有一个md文档.\n\n每次追加新情景记忆或语义记忆时, 检查是否有无效或过时的记忆, 遗忘他们.\n\n记忆的格式:\n\n[时间]: 记忆内容.\n\n比如:\n\n2026-05-10: 用户有一个会议。\n\n‍\n",
     "AI/AI开发文章收集": "收集一些自己看过的文章.\r\n\r\n[解决MCP以及工具调用结果塞爆上下文的问题]https://www.anthropic.com/engineering/advanced-tool-use\r\n- 通过搜索拿到与当前需求相关的工具, 而不是直接把MCP的工具list塞到上下文\r\n- 允许AI编写脚本来实现工具连续调用, 而不是调用一个工具, 查看结果, 再调用, 再查看.\r\n- 还提到了让AI更好地使用工具, 方法是给出工具使用的示范. 因为如果只约束参数等等, AI有可能无法理解具体业务场景下这个工具怎么用.",
     "AI/Skill+CLI vs MCP": "始于这个视频: 【为什么越来越多的人抛弃 MCP，转向 CLI？】 https://www.bilibili.com/video/BV16zDfBtECQ/?share_source=copy_web&vd_source=7a2026ff63a3f29335dfc3bce9d0c816\r\n\r\n其实这个视频完整地说应该是考虑Skill + CLI. 因为CLI所执行的工具包含在skill里.\r\n\r\n这里大概总结一下优劣:\r\n\r\nSkill + CLI:\r\n- 更省token. 只需要告诉模型如何调用bash命令就行. 然后就可以直接在skill中找能调的脚本了. 相比之下, MCP需要规定工具描述, 工具参数, 调用规范等等, 当MCP一多, 上下文直接爆炸. (当然, 如果做一些优化, 其实可以有效缓解这个问题)\r\n- 执行效率更高. 按视频的说法, 调用MCP的工具, 一次只能调用一个. 调用->模型响应->调用->模型响应, 这样循环. 而CLI则通过组合bash命令, 一次性就能跑多个指令. 不过这部分我存疑, 问了豆包说是MCP也支持批量调用工具的.\r\n- 更灵活. 这个倒没得说, 下载个skill开箱即用, 整体使用工具的流程肯定是比MCP要快捷灵活的.\n\r\nMCP:\r\n- 安全. CLI容易出事这个不用说.\r\n- 出错概率更低. MCP直接传字符串的, CLI的话字符串可能识别成命令之类的, 容易出问题.\r\n- 远程调用. CLI想实现的话得本地调用请求接口了, MCP封装好的接口更好.\r\n\r\n所以综合来看, 感觉Skill+CLI本地做事情, MCP调用外部服务, 这样应该比较合适. 并且这样看来, Skill+CLI的占比是要更大的, 这其实也符合这个视频的观点, 所以这个up还是没毛.\r\n",
     "AI/Harness Engineering": "# Harness Engineering\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120004-njfxtae.png)\n\n除了大模型以外的东西都可以认为是harness\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120115-p7o8lt8.png)\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122512-7cjmgdo.png)\n\n# OpenAI的实践\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120235-c0y5pra.png)\n\n## 上下文管理\n\n不要把所有规范等等塞到agent.md中, 而是将agent.md当作目录, 需要的时候自己再查阅.\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120421-majd735.png)\n\n同时, 让仓库本身成为唯一的事实来源. 而不是塞在提示词中.\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120514-kwwgikp.png)\n\n## 验证与反馈\n\n给agent配备能够验证的工具与skill.\n\n还可以引入外部的review机制.\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120800-azw1j9s.png)\n\n## 技术债清理\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509120922-4f4o32u.png)\n\n## 结论\n\n新时代软件工程师, 更多的是为agent搭建框架.\n\n# Anthropic的实践\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509121228-myt3dg1.png)\n\n## 任务规划\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509121335-xr57cjp.png)\n\n## 质量评估\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122006-uodsu93.png)\n\n## 流程\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122030-mxlbbf8.png)\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122115-4onasud.png)\n\n等4.6出来之后, 将\"逐功能点\"简化为了generator一次性生成全部代码, 然后直接评估.\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122152-llbm358.png)\n\n![image](/Blog/AI/Harness%20Engineering/assets/image-20260509122209-wx05af0.png)\n\n# 个人观点\n\nharness engineering颇有一种让agent开发成为一个真正有价值的岗位, 的感觉.\n\n一个比喻就是, CPU再牛逼也需要操作系统. 操作系统设计的各种调度等等, 充分发挥CPU的能力.\n\n那agent开发这块其实也一样, 只要还是基于LLM的这套理论, 那么agent还是必不可少的. 进一步拓展来说, 不仅是代码开发, 如果将LLM放在其他环境, 例如游戏内, 现实世界中, 那么同样需要大量的agent工程做适配.\n\n那这样的话我还是挺看好agent开发的.\n",
