@@ -16,6 +16,7 @@ import Zoom from "react-medium-image-zoom";
 import "katex/dist/katex.min.css";
 import "highlight.js/styles/github.css";
 import "react-medium-image-zoom/dist/styles.css";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 interface BlogPost {
 
@@ -35,6 +36,8 @@ interface BlogConfig {
 function BlogList({ posts }: { posts: BlogPost[] }) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(10);
+
+  useDocumentTitle("Magic Notes");
   
   const allTags = Array.from(new Set(posts.flatMap(post => post.categories)));
   const filteredPosts = selectedTag ? posts.filter(p => p.categories.includes(selectedTag)) : posts;
@@ -262,6 +265,8 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
   const navigate = useNavigate();
   const post = posts.find(p => p.id === id);
   const [content, setContent] = useState<string>("Loading...");
+
+  useDocumentTitle(post ? `${post.title} - Magic Notes` : "Magic Notes");
   
   const headings = useHeadings(content);
   const activeId = useScrollSpy(headings);

@@ -1,7 +1,4 @@
-# Lyra相机方案拆解与拓展
-
 > 本文中可能存在称呼混用的问题, 比如LyraCameraComponent偶尔会被我称为CameraComponent, 需注意与UE原生的CameraComponent做区分, 其他名词同理.
-
 # LyraCameraModeView
 
 Lyra用一个结构体`FLyraCameraModeView`来描述相机. 其中封装了:
@@ -9,7 +6,7 @@ Lyra用一个结构体`FLyraCameraModeView`来描述相机. 其中封装了:
 1. 相机的旋转, 位置, FOV.
 2. ​`Blend()`​函数, 定义了如何与另一个`FLyraCameraModeView`做融合.
 
-![image](assets/image-20260412151701-kojqftp.png)
+![image](image-20260412151701-kojqftp.png)
 
 可以认为是对UE原生`FMinimalViewInfo`的简化.
 
@@ -17,7 +14,7 @@ Lyra用一个结构体`FLyraCameraModeView`来描述相机. 其中封装了:
 
 此外, 结构体中的Rotation区分了相机Rotation和ControlRotation. 前者是相机实际上的Rotation, 后者则是玩家控制器朝向. 大部分时间后者等于前者, 但少部分时间(比如需要运镜), 那么后者可能会不等于前者.
 
-![image](assets/image-20260412145534-fpc8b18.png)
+![image](image-20260412145534-fpc8b18.png)
 
 # CameraMode
 
@@ -63,7 +60,7 @@ CameraMode中实现了`GetPivotLocation()`, 确保角色下蹲前后, 返回的P
 
 > 这里讲点题外话, Lyra可能在这块写的不太对: `TargetCrouchOffset`是每一帧都更新的, 也就是说按Lyra的写法每一帧都会重置blend进度. 从实际效果来看没差, 但是从逻辑上来看, 应该加个判断, 当新的Target和原来的不同时才重置blend进度. 我加了判断测了下, 局内效果没什么问题.
 >
-> ![image](assets/image-20260409221231-s6vflks.png)
+> ![image](image-20260409221231-s6vflks.png)
 
 然后,
 
@@ -73,11 +70,11 @@ Lyra的解决方案是采样曲线. 利用PivotRotation的Pitch值, 采样一个
 
 采样得到的向量是Local空间的, 需要利用PivotRotation将其转到Global空间.
 
-![image](assets/image-20260409223637-36mojb8.png)
+![image](image-20260409223637-36mojb8.png)
 
 采样的具体细节:
 
-![image](assets/image-20260409225829-zimxg0k.png)
+![image](image-20260409225829-zimxg0k.png)
 
 最后,
 
@@ -85,7 +82,7 @@ Lyra的解决方案是采样曲线. 利用PivotRotation的Pitch值, 采样一个
 
 关键成员变量: `PenetrationAvoidanceFeelers` 存储所有射线的参数, 比如旋转的角度, 检测的半径等等. 在实际计算的时候, 会根据设定的参数来旋转BaseRay, 得到新的射线. 在构造函数中, 添加了数个射线:
 
-![image](assets/image-20260409224545-pyvghdp.png)
+![image](image-20260409224545-pyvghdp.png)
 
 关键成员变量: `CollisionPushOutDistance`当得到射线检测的碰撞点时, 我们不能直接将相机放在那个位置, 否则相机会和检测到的物体重合导致穿模. 所以会往人物身上靠近一小段距离. 就是这个变量定义的距离
 
@@ -93,14 +90,14 @@ Lyra的解决方案是采样曲线. 利用PivotRotation的Pitch值, 采样一个
 
 1. 找射线检测的起点. 在代码中被称为SafeLocation.
 
-   ![image](assets/image-20260409224449-1v7m21e.png)
+   ![image](image-20260409224449-1v7m21e.png)
 2. 从SafeLocation发出检测射线
 
    (防止大图太糊, 这里分两次截\)
 
-   ![image](assets/image-20260409230214-qr7vmk0.png)
+   ![image](image-20260409230214-qr7vmk0.png)
 
-   ![image](assets/image-20260409230243-w4x0ohk.png)
+   ![image](image-20260409230243-w4x0ohk.png)
 
 # LyraCameraComponent
 

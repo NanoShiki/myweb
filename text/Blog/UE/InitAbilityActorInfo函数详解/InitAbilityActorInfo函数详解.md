@@ -1,6 +1,4 @@
-# AbilitySystemComponent::InitAbilityActorInfo函数详解
-
-​`UAbilitySystemComponent::InitAbilityActorInfo` 可以把它理解成：
+`UAbilitySystemComponent::InitAbilityActorInfo` 可以把它理解成：
 
 **给 ASC 建立“我是谁、我控制谁、谁在控制我、我该对哪个肉身做动画/位移/目标判定”的运行时上下文。**
 

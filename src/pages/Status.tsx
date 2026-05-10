@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 interface BlogPost {
   id: string;
@@ -29,6 +30,8 @@ interface Rumor {
 export default function Status() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [rumors, setRumors] = useState<Rumor[]>([]);
+
+  useDocumentTitle();
 
   useEffect(() => {
     fetch("/api/blog/config")

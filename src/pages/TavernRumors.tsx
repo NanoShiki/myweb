@@ -4,6 +4,7 @@ import { Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { format } from "date-fns";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 interface Rumor {
   filename: string;
@@ -57,6 +58,8 @@ function RumorCard({ rumor, index }: { rumor: Rumor; index: number }) {
 export default function TavernRumors() {
   const [rumorsData, setRumorsData] = useState<Rumor[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useDocumentTitle("Tavern Rumors");
 
   useEffect(() => {
     fetch("/api/thoughts")
