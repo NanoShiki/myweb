@@ -5,6 +5,7 @@ coverage/
 .DS_Store
 *.log
 .codex-dev.*
+.codex-dev-preview*
 .vercel-global/
 .env*
 !.env.example

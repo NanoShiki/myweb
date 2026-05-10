@@ -1,3 +1,6 @@
+---
+date: 2026-05-08
+---
 始于这个视频: 【为什么越来越多的人抛弃 MCP，转向 CLI？】 https://www.bilibili.com/video/BV16zDfBtECQ/?share_source=copy_web&vd_source=7a2026ff63a3f29335dfc3bce9d0c816
 
 其实这个视频完整地说应该是考虑Skill + CLI. 因为CLI所执行的工具包含在skill里.

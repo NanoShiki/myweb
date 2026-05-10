@@ -1,3 +1,6 @@
+---
+date: 2026-04-13
+---
 > 本文中可能存在称呼混用的问题, 比如LyraCameraComponent偶尔会被我称为CameraComponent, 需注意与UE原生的CameraComponent做区分, 其他名词同理.
 # LyraCameraModeView
 

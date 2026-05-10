@@ -23,7 +23,6 @@ interface BlogPost {
   id: string;
   title: string;
   date: string;
-  createdTs: number;
   path: string;
   categories: string[];
 }
@@ -361,8 +360,10 @@ export default function MagicNotes() {
     );
   }
 
-  // Sort posts by descending createdTs
-  const sortedPosts = [...config.posts].sort((a, b) => b.createdTs - a.createdTs);
+  // Sort posts by descending date
+  const sortedPosts = [...config.posts].sort(
+    (a, b) => new Date(`${b.date}T00:00:00`).getTime() - new Date(`${a.date}T00:00:00`).getTime(),
+  );
 
   return (
     <Routes>

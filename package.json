@@ -4,15 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/update-content-config.mjs",
     "dev": "tsx server.ts",
     "start": "node server.js",
-    "prebuild": "node scripts/update-content-config.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
-    "update:content": "node scripts/update-content-config.mjs"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

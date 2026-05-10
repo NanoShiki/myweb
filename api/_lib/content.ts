@@ -21,7 +21,6 @@ const repoRoot =
       fs.existsSync(path.join(root, "text", "Thought")),
   ) ??
   path.resolve(moduleDir, "..", "..");
-const contentConfigPath = path.join(repoRoot, "text", "config.json");
 const blogRoot = path.join(repoRoot, "text", "Blog");
 const blogArchiveRoot = path.join(blogRoot, "archive");
 const thoughtRoot = path.join(repoRoot, "text", "Thought");
@@ -30,7 +29,6 @@ interface BlogPost {
   id: string;
   title: string;
   date: string;
-  createdTs: number;
   path: string;
   categories: string[];
 }
@@ -44,20 +42,8 @@ interface CategoryTreeNode {
 
 interface Thought {
   filename: string;
-  date: string;
+  "date&time": string;
   content: string;
-}
-
-interface ContentConfig {
-  site?: {
-    title: string;
-    subtitle: string;
-    author: string;
-  };
-  posts?: BlogPost[];
-  categoryTree?: CategoryTreeNode;
-  postContentByPath?: Record<string, string>;
-  thoughts?: Thought[];
 }
 
 const defaultBlogSite = {
@@ -133,12 +119,21 @@ function getCreatedTimestampMs(stats: fs.Stats) {
   return stats.birthtimeMs || stats.mtimeMs || Date.now();
 }
 
-function formatLocalDate(timestampMs: number) {
+function formatDateLocal(timestampMs: number) {
   const date = new Date(timestampMs);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatDateTimeLocal(timestampMs: number) {
+  const date = formatDateLocal(timestampMs);
+  const dateObj = new Date(timestampMs);
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const seconds = String(dateObj.getSeconds()).padStart(2, "0");
+  return `${date}T${hours}:${minutes}:${seconds}`;
 }
 
 function getOrderedSubdirs(dir: string) {
@@ -150,6 +145,18 @@ function getOrderedSubdirs(dir: string) {
     .readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !isIgnoredBlogDir(entry.name))
     .sort((a, b) => naturalCompare(a.name, b.name));
+}
+
+function getOrderedMarkdownFiles(dir: string) {
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
+    .map((entry) => entry.name)
+    .sort((a, b) => naturalCompare(a, b));
 }
 
 function findPostMarkdownInDir(dir: string) {
@@ -219,15 +226,26 @@ function buildBlogPost(urlPrefix: string, relPathParts: string[], dir: string) {
     return null;
   }
 
-  const markdownStats = fs.statSync(markdownPath);
-  const timestampMs = getCreatedTimestampMs(markdownStats);
+  const { attributes, fallbackTimestampMs } = readMarkdownFile(markdownPath);
   const relPath = relPathParts.join("/");
 
   return {
     id: relPathParts.join("_"),
     title: path.basename(markdownPath, ".md"),
-    date: formatLocalDate(timestampMs),
-    createdTs: Math.floor(timestampMs / 1000),
+    date: normalizeDateValue(attributes.date ?? "", fallbackTimestampMs),
+    path: `${urlPrefix}/${relPath}/`,
+    categories: relPathParts.slice(0, -1),
+  } satisfies BlogPost;
+}
+
+function buildBlogPostFromMarkdownFile(urlPrefix: string, relPathParts: string[], markdownPath: string) {
+  const { attributes, fallbackTimestampMs } = readMarkdownFile(markdownPath);
+  const relPath = relPathParts.join("/");
+
+  return {
+    id: relPathParts.join("_"),
+    title: path.basename(markdownPath, ".md"),
+    date: normalizeDateValue(attributes.date ?? "", fallbackTimestampMs),
     path: `${urlPrefix}/${relPath}/`,
     categories: relPathParts.slice(0, -1),
   } satisfies BlogPost;
@@ -235,6 +253,12 @@ function buildBlogPost(urlPrefix: string, relPathParts: string[], dir: string) {
 
 function findBlogPostsRecursive(urlPrefix: string, currentDir: string, relPathParts: string[], skipArchive: boolean) {
   const posts: BlogPost[] = [];
+
+  for (const file of getOrderedMarkdownFiles(currentDir)) {
+    const markdownPath = path.join(currentDir, file);
+    const postName = path.basename(file, path.extname(file));
+    posts.push(buildBlogPostFromMarkdownFile(urlPrefix, [...relPathParts, postName], markdownPath));
+  }
 
   for (const entry of getOrderedSubdirs(currentDir)) {
     if (relPathParts.length === 0 && skipArchive && entry.name === "archive") {
@@ -263,7 +287,7 @@ function getPostFolderName(post: BlogPost) {
 
 function sortPosts(posts: BlogPost[]) {
   return posts.sort((a, b) => {
-    const createdDiff = b.createdTs - a.createdTs;
+    const createdDiff = getSortTimestamp(b.date) - getSortTimestamp(a.date);
     if (createdDiff !== 0) {
       return createdDiff;
     }
@@ -407,40 +431,157 @@ function normalizeBlogContentKey(value: string) {
   return normalizeUrlPath(value).replace(/^archive\//, "");
 }
 
-function readContentConfig() {
-  if (!fs.existsSync(contentConfigPath)) {
-    return null;
+function parseFrontmatter(markdown: string) {
+  const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!match) {
+    return { attributes: {}, body: markdown };
   }
 
-  try {
-    return JSON.parse(fs.readFileSync(contentConfigPath, "utf-8")) as ContentConfig;
-  } catch (error) {
-    console.error("Failed to read text/config.json", error);
-    return null;
-  }
-}
+  const attributes: Record<string, string> = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex === -1) {
+      continue;
+    }
 
-export function readBlogConfig() {
-  const config = readContentConfig();
-  if (!config) {
-    return null;
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim();
+    if (key) {
+      attributes[key] = value;
+    }
   }
 
-  const posts = config.posts ?? [];
   return {
-    site: config.site ?? defaultBlogSite,
-    posts,
-    categoryTree: config.categoryTree ?? buildCategoryTree(posts),
+    attributes,
+    body: markdown.slice(match[0].length),
   };
 }
 
+function normalizeDateValue(value: string, fallbackTimestampMs: number) {
+  if (!value) {
+    return formatDateLocal(fallbackTimestampMs);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(value)) {
+    return value.slice(0, 10);
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return formatDateLocal(parsed.getTime());
+  }
+
+  return formatDateLocal(fallbackTimestampMs);
+}
+
+function normalizeDateTimeValue(value: string, fallbackTimestampMs: number) {
+  if (!value) {
+    return formatDateTimeLocal(fallbackTimestampMs);
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return `${value}T00:00:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+    return `${value}:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(value)) {
+    return value;
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return formatDateTimeLocal(parsed.getTime());
+  }
+
+  return formatDateTimeLocal(fallbackTimestampMs);
+}
+
+function getSortTimestamp(value: string) {
+  const normalizedValue = value.includes("T") ? value : `${value}T00:00:00`;
+  return new Date(normalizedValue).getTime();
+}
+
+function readMarkdownFile(filePath: string) {
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const stats = fs.statSync(filePath);
+  const fallbackTimestampMs = getCreatedTimestampMs(stats);
+  const { attributes, body } = parseFrontmatter(raw);
+
+  return {
+    attributes,
+    body,
+    fallbackTimestampMs,
+  };
+}
+
+export function readBlogConfig() {
+  const { fsRoot, urlPrefix, skipArchive } = getBlogContentRoot();
+  const rawPosts = findBlogPostsRecursive(urlPrefix, fsRoot, [], skipArchive);
+  const posts = sortPosts(rawPosts);
+  return {
+    site: defaultBlogSite,
+    posts,
+    categoryTree: buildCategoryTree(posts),
+  };
+}
+
+function getBlogPostMarkdownPath(postPath: string) {
+  const { fsRoot } = getBlogContentRoot();
+  const normalizedPath = normalizeBlogContentKey(postPath);
+  const relativePath = normalizedPath.replace(/^archive\//, "");
+  const postDir = path.join(fsRoot, ...relativePath.split("/"));
+  const markdownPath = findPostMarkdownInDir(postDir);
+
+  if (markdownPath) {
+    return markdownPath;
+  }
+
+  const markdownFilePath = path.join(fsRoot, `${relativePath}.md`);
+  if (fs.existsSync(markdownFilePath) && fs.statSync(markdownFilePath).isFile()) {
+    return markdownFilePath;
+  }
+
+  return null;
+}
+
 export function readBlogPost(postPath: string) {
-  const config = readContentConfig();
-  return config?.postContentByPath?.[normalizeBlogContentKey(postPath)] ?? null;
+  const markdownPath = getBlogPostMarkdownPath(postPath);
+  if (!markdownPath) {
+    return null;
+  }
+
+  const relativeContentPath = path.relative(blogRoot, path.dirname(markdownPath));
+  const { body } = readMarkdownFile(markdownPath);
+  return rewriteMarkdownAssetLinks(body, pathToUrlPath(relativeContentPath));
 }
 
 export function listThoughts() {
-  return readContentConfig()?.thoughts ?? [];
+  if (!fs.existsSync(thoughtRoot)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(thoughtRoot, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".md"))
+    .map((entry) => {
+      const fullPath = path.join(thoughtRoot, entry.name);
+      const { attributes, body, fallbackTimestampMs } = readMarkdownFile(fullPath);
+      const dateTime = normalizeDateTimeValue(attributes["date&time"] ?? "", fallbackTimestampMs);
+
+      return {
+        filename: entry.name,
+        "date&time": dateTime,
+        content: body,
+      } satisfies Thought;
+    })
+    .sort((a, b) => getSortTimestamp(b["date&time"]) - getSortTimestamp(a["date&time"]));
 }
 
 function contentTypeFor(filePath: string) {

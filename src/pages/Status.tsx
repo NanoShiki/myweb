@@ -18,12 +18,12 @@ import { useDocumentTitle } from "../lib/useDocumentTitle";
 interface BlogPost {
   id: string;
   title: string;
-  createdTs: number;
+  date: string;
 }
 
 interface Rumor {
   filename: string;
-  date: string;
+  "date&time": string;
   content: string;
 }
 
@@ -38,7 +38,7 @@ export default function Status() {
       .then(res => res.json())
       .then(data => {
         if (data?.posts) {
-          setPosts([...data.posts].sort((a, b) => b.createdTs - a.createdTs).slice(0, 8));
+          setPosts([...data.posts].sort((a, b) => new Date(`${b.date}T00:00:00`).getTime() - new Date(`${a.date}T00:00:00`).getTime()).slice(0, 8));
         }
       })
       .catch(console.error);
@@ -179,7 +179,7 @@ export default function Status() {
                   
                   {rumors.length > 0 ? (
                     rumors.map(rumor => {
-                      const dateObj = new Date(rumor.date);
+                      const dateObj = new Date(rumor["date&time"]);
                       const displayDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                       // Remove markdown images entirely, then strip symbols
                       const cleanContent = rumor.content

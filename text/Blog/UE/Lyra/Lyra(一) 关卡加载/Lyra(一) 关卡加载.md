@@ -1,3 +1,6 @@
+---
+date: 2026-02-06
+---
 推荐先了解一下GameFeature, AssetManager的概念
 
 本文主要梳理一下PIE中, 人物走到传送点, 传送到新level的过程, 以及中间的loading界面.

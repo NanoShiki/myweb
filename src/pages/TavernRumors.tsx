@@ -8,7 +8,7 @@ import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 interface Rumor {
   filename: string;
-  date: string;
+  "date&time": string;
   content: string;
 }
 
@@ -24,7 +24,7 @@ function RumorCard({ rumor, index }: { rumor: Rumor; index: number }) {
       ? `${rumor.content.slice(0, MAX_PREVIEW_LENGTH)}...` 
       : rumor.content;
 
-  const dateObj = new Date(rumor.date);
+  const dateObj = new Date(rumor["date&time"]);
   const dateStr = format(dateObj, 'yyyy-MM-dd');
   const timeStr = format(dateObj, 'HH:mm');
 

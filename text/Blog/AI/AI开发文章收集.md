@@ -1,3 +1,6 @@
+---
+date: 2026-05-08
+---
 收集一些自己看过的文章.
 
 [解决MCP以及工具调用结果塞爆上下文的问题]https://www.anthropic.com/engineering/advanced-tool-use

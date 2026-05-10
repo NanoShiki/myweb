@@ -19,12 +19,6 @@ async function startServer() {
 
   app.get("/api/blog/config", (req, res) => {
     const config = readBlogConfig();
-
-    if (!config) {
-      res.status(404).json({ error: "Blog config not found" });
-      return;
-    }
-
     res.json(config);
   });
 
