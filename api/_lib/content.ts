@@ -117,12 +117,20 @@ function encodeUrlPath(value: string) {
     .join("/")}${suffix}`;
 }
 
+function fileExists(filePath: string) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
 function isIgnoredBlogDir(name: string) {
   return ignoredBlogDirs.has(name) || name.startsWith(".");
 }
 
 function naturalCompare(a: string, b: string) {
   return naturalCollator.compare(a, b);
+}
+
+function getCreatedTimestampMs(stats: fs.Stats) {
+  return stats.birthtimeMs || stats.mtimeMs || Date.now();
 }
 
 function formatLocalDate(timestampMs: number) {
@@ -181,15 +189,6 @@ function hasBlogPosts(root: string, skipArchive: boolean) {
   return walk(root, true);
 }
 
-function extractTitleFromMarkdown(markdownPath: string) {
-  const content = fs.readFileSync(markdownPath, "utf-8");
-  const titleLine = content
-    .split(/\r?\n/)
-    .find((line) => /^#\s+/.test(line.trim()));
-
-  return titleLine?.trim().replace(/^#\s+/, "").trim() || path.basename(markdownPath, ".md");
-}
-
 function getBlogContentRoot() {
   if (hasBlogPosts(blogRoot, true)) {
     return {
@@ -221,12 +220,12 @@ function buildBlogPost(urlPrefix: string, relPathParts: string[], dir: string) {
   }
 
   const markdownStats = fs.statSync(markdownPath);
-  const timestampMs = markdownStats.mtimeMs || markdownStats.birthtimeMs || Date.now();
+  const timestampMs = getCreatedTimestampMs(markdownStats);
   const relPath = relPathParts.join("/");
 
   return {
     id: relPathParts.join("_"),
-    title: extractTitleFromMarkdown(markdownPath),
+    title: path.basename(markdownPath, ".md"),
     date: formatLocalDate(timestampMs),
     createdTs: Math.floor(timestampMs / 1000),
     path: `${urlPrefix}/${relPath}/`,
@@ -341,6 +340,27 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
     baseAssetUrl += "/";
   }
 
+  const resolveAssetTarget = (url: string) => {
+    if (!url || url.startsWith("http") || url.startsWith("#") || url.startsWith("data:")) {
+      return null;
+    }
+
+    const cleanUrl = url.split(/[?#]/, 1)[0].replace(/\\/g, "/");
+    const baseDir = path.join(blogRoot, relativePath);
+    const directPath = path.join(baseDir, cleanUrl);
+    if (fileExists(directPath)) {
+      return cleanUrl;
+    }
+
+    const assetFallback = path.posix.join("assets", cleanUrl);
+    const assetFallbackPath = path.join(baseDir, assetFallback);
+    if (fileExists(assetFallbackPath)) {
+      return assetFallback;
+    }
+
+    return cleanUrl;
+  };
+
   let rewritten = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, target) => {
     let url = target.trim();
     let title = "";
@@ -356,10 +376,11 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
 
     let finalUrl = url;
     if (!url.startsWith("http") && !url.startsWith("#") && !url.startsWith("data:")) {
+      const resolvedTarget = resolveAssetTarget(url) ?? url;
       if (url.startsWith("/")) {
         finalUrl = encodeUrlPath(url);
       } else {
-        finalUrl = encodeUrlPath(baseAssetUrl + url);
+        finalUrl = encodeUrlPath(baseAssetUrl + resolvedTarget);
       }
     }
 
@@ -371,9 +392,10 @@ function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
       return match;
     }
 
+    const resolvedTarget = resolveAssetTarget(url) ?? url;
     const finalUrl = url.startsWith("/")
       ? encodeUrlPath(url)
-      : encodeUrlPath(baseAssetUrl + url);
+      : encodeUrlPath(baseAssetUrl + resolvedTarget);
 
     return match.replace(url, finalUrl);
   });
@@ -444,13 +466,25 @@ function contentTypeFor(filePath: string) {
 
 export function readBlogAsset(assetPath: string) {
   for (const relativePath of getBlogRelativeCandidates(assetPath)) {
-    const resolved = resolveWithin(blogRoot, relativePath);
+    const candidates = [relativePath];
+    if (!relativePath.includes("/assets/")) {
+      const lastSlashIndex = relativePath.lastIndexOf("/");
+      if (lastSlashIndex !== -1) {
+        const parentDir = relativePath.slice(0, lastSlashIndex);
+        const fileName = relativePath.slice(lastSlashIndex + 1);
+        candidates.push(`${parentDir}/assets/${fileName}`);
+      }
+    }
 
-    if (resolved && fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-      return {
-        body: fs.readFileSync(resolved),
-        contentType: contentTypeFor(resolved),
-      };
+    for (const candidate of candidates) {
+      const resolved = resolveWithin(blogRoot, candidate);
+
+      if (resolved && fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+        return {
+          body: fs.readFileSync(resolved),
+          contentType: contentTypeFor(resolved),
+        };
+      }
     }
   }
 

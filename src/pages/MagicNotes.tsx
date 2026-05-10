@@ -33,6 +33,10 @@ interface BlogConfig {
   posts: BlogPost[];
 }
 
+function stripLeadingMarkdownTitle(content: string) {
+  return content.replace(/^\uFEFF?(?:[ \t]*\r?\n)*#\s+.+?(?:\r?\n){1,2}/, "");
+}
+
 function BlogList({ posts }: { posts: BlogPost[] }) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(10);
@@ -270,6 +274,7 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
   
   const headings = useHeadings(content);
   const activeId = useScrollSpy(headings);
+  const renderedContent = stripLeadingMarkdownTitle(content);
 
   useEffect(() => {
     if (!post) return;
@@ -329,7 +334,7 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
                 )
               }}
             >
-              {content}
+              {renderedContent}
             </ReactMarkdown>
           </div>
         </div>

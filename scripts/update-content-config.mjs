@@ -27,6 +27,10 @@ function naturalCompare(a, b) {
   return naturalCollator.compare(a, b);
 }
 
+function getCreatedTimestampMs(stats) {
+  return stats.birthtimeMs || stats.mtimeMs || Date.now();
+}
+
 function formatLocalDate(timestampMs) {
   const date = new Date(timestampMs);
   const year = date.getFullYear();
@@ -163,14 +167,6 @@ function hasBlogPosts(root, skipArchive) {
   return walk(root, true);
 }
 
-function extractTitleFromMarkdown(markdown) {
-  const titleLine = markdown
-    .split(/\r?\n/)
-    .find((line) => /^#\s+/.test(line.trim()));
-
-  return titleLine?.trim().replace(/^#\s+/, "").trim();
-}
-
 function getBlogContentRoot() {
   if (hasBlogPosts(blogRoot, true)) {
     return {
@@ -241,6 +237,31 @@ function encodeUrlPath(value) {
     .join("/")}${suffix}`;
 }
 
+function fileExistsCaseSensitive(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+}
+
+function resolveAssetTarget(relativeBaseDir, url) {
+  if (!url || url.startsWith("http") || url.startsWith("#") || url.startsWith("data:")) {
+    return null;
+  }
+
+  const cleanUrl = url.split(/[?#]/, 1)[0].replace(/\\/g, "/");
+  const baseDir = path.join(blogRoot, relativeBaseDir);
+  const directPath = path.join(baseDir, cleanUrl);
+  if (fileExistsCaseSensitive(directPath)) {
+    return cleanUrl;
+  }
+
+  const assetFallback = path.posix.join("assets", cleanUrl);
+  const assetFallbackPath = path.join(baseDir, assetFallback);
+  if (fileExistsCaseSensitive(assetFallbackPath)) {
+    return assetFallback;
+  }
+
+  return cleanUrl;
+}
+
 function rewriteMarkdownAssetLinks(content, relativePath) {
   let baseAssetUrl = `/Blog/${relativePath}`;
   if (!baseAssetUrl.endsWith("/")) {
@@ -262,9 +283,10 @@ function rewriteMarkdownAssetLinks(content, relativePath) {
 
     let finalUrl = url;
     if (!url.startsWith("http") && !url.startsWith("#") && !url.startsWith("data:")) {
+      const resolvedTarget = resolveAssetTarget(relativePath, url) ?? url;
       finalUrl = url.startsWith("/")
         ? encodeUrlPath(url)
-        : encodeUrlPath(baseAssetUrl + url);
+        : encodeUrlPath(baseAssetUrl + resolvedTarget);
     }
 
     return `![${alt}](${finalUrl}${title})`;
@@ -275,9 +297,10 @@ function rewriteMarkdownAssetLinks(content, relativePath) {
       return match;
     }
 
+    const resolvedTarget = resolveAssetTarget(relativePath, url) ?? url;
     const finalUrl = url.startsWith("/")
       ? encodeUrlPath(url)
-      : encodeUrlPath(baseAssetUrl + url);
+      : encodeUrlPath(baseAssetUrl + resolvedTarget);
 
     return match.replace(url, finalUrl);
   });
@@ -288,24 +311,20 @@ function rewriteMarkdownAssetLinks(content, relativePath) {
 function buildBlogEntry(urlPrefix, relPathParts, markdownPath, assetRelPathParts, existingPostLookup) {
   const rawContent = fs.readFileSync(markdownPath, "utf-8");
   const markdownStats = fs.statSync(markdownPath);
-  const fallbackTimestampMs = markdownStats.mtimeMs || markdownStats.birthtimeMs || Date.now();
+  const createdTimestampMs = getCreatedTimestampMs(markdownStats);
   const relPath = relPathParts.join("/");
   const post = {
     id: relPathParts.join("_"),
-    title: extractTitleFromMarkdown(rawContent) || path.basename(markdownPath, ".md"),
-    date: formatLocalDate(fallbackTimestampMs),
-    createdTs: Math.floor(fallbackTimestampMs / 1000),
+    title: path.basename(markdownPath, ".md"),
+    date: formatLocalDate(createdTimestampMs),
+    createdTs: Math.floor(createdTimestampMs / 1000),
     path: `${urlPrefix}/${relPath}/`,
     categories: relPathParts.slice(0, -1),
   };
   const existingPost = findExistingPost(existingPostLookup, post);
 
-  if (existingPost?.date) {
-    post.date = existingPost.date;
-  }
-
-  if (Number.isFinite(existingPost?.createdTs)) {
-    post.createdTs = existingPost.createdTs;
+  if (existingPost?.id && existingPost.id !== post.id) {
+    post.id = existingPost.id;
   }
 
   return {
