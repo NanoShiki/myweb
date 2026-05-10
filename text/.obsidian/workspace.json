@@ -11,10 +11,14 @@
             "id": "d783a3263fb22f7e",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新标签页"
+              "title": "Lyra(三) 相机系统"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "Lyra(三) 相机系统 的反向链接列表"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "Lyra(三) 相机系统 的出链列表"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "大纲"
+              "title": "Lyra(三) 相机系统 的大纲"
             }
           },
           {
@@ -169,11 +176,11 @@
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 4
       }
     ],
     "direction": "horizontal",
-    "width": 558.5
+    "width": 507.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -187,13 +194,24 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "fa5977d47cce337a",
+  "active": "d783a3263fb22f7e",
   "lastOpenFiles": [
+    "Blog/UE/Lyra/Lyra(二) GameFeatureAction/Lyra(二) GameFeatureAction.md",
+    "Blog/UE/Lyra/CommonLoadingScreen插件介绍/CommonLoadingScreen插件介绍.md",
+    "Blog/AI/Skill+CLI vs MCP.md",
+    "Blog/AI/AI开发文章收集.md",
+    "Blog/AI/记忆系统 NanoMemory.md",
+    "Blog/AI/Harness Engineering/Harness Engineering.md",
+    "Blog/AI/MCP/MCP.md",
+    "Blog/AI/RAG/RAG.md",
+    "Blog/UE/Lyra/Lyra UIExtension插件介绍.md",
+    "Blog/UE/Lyra/Lyra(一) 关卡加载/Lyra(一) 关卡加载.md",
+    "Thought/感觉看视频还是好.md",
+    "Thought/我的笔记风格.md",
+    "Thought/test.md",
     "未命名.base",
     "Blog/UE/InitAbilityActorInfo函数详解/InitAbilityActorInfo函数详解.md",
-    "Blog/UE/Lyra/Lyra(一) 关卡加载/Lyra(一) 关卡加载.md",
     "Blog/UE/Lyra/Lyra(四) 角色系统/Lyra(四) 角色系统.md",
-    "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md",
-    "Blog/UE/Lyra/Lyra(二) GameFeatureAction/Lyra(二) GameFeatureAction.md"
+    "Blog/UE/Lyra/Lyra(三) 相机系统/Lyra(三) 相机系统.md"
   ]
 }

@@ -1,5 +1,3 @@
-# MCP
-
 # 基础
 
 选择Cline作为MCP host

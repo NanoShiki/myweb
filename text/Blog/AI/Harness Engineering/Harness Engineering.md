@@ -1,5 +1,3 @@
-# Harness Engineering
-
 ![image](assets/image-20260509120004-njfxtae.png)
 
 除了大模型以外的东西都可以认为是harness

@@ -1,5 +1,3 @@
-# CommonLoadingScreen插件介绍
-
 该插件的主要思路是用一个Manager(继承于GameInstanceSubsystem), 每一帧都检测是否需要显示加载界面.
 
 创建一个ILoadingProcessInterface接口, 需要显示LoadinScreen的类就要继承这个接口类, 然后覆盖其**ShouldShowLoadingScreen**函数.

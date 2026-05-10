@@ -1,5 +1,3 @@
-# 记忆系统 NanoMemory
-
 让ai根据下面的设计简单跑了一个: https://github.com/NanoShiki/NanoMemory.git
 
 # 项目定位
