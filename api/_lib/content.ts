@@ -160,9 +160,13 @@ function getOrderedMarkdownFiles(dir: string) {
 }
 
 function findPostMarkdownInDir(dir: string) {
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+    return null;
+  }
+
   const folderName = path.basename(dir);
   const preferredPath = path.join(dir, `${folderName}.md`);
-  if (fs.existsSync(preferredPath)) {
+  if (fileExists(preferredPath)) {
     return preferredPath;
   }
 
@@ -175,13 +179,23 @@ function findPostMarkdownInDir(dir: string) {
   return markdownFiles.length === 1 ? path.join(dir, markdownFiles[0]) : null;
 }
 
+function findDedicatedPostMarkdownInDir(dir: string) {
+  const folderName = path.basename(dir);
+  const preferredPath = path.join(dir, `${folderName}.md`);
+  return fileExists(preferredPath) ? preferredPath : null;
+}
+
 function hasBlogPosts(root: string, skipArchive: boolean) {
   const walk = (dir: string, isRoot = false): boolean => {
     if (!fs.existsSync(dir)) {
       return false;
     }
 
-    if (!isRoot && findPostMarkdownInDir(dir)) {
+    if (getOrderedMarkdownFiles(dir).length > 0) {
+      return true;
+    }
+
+    if (!isRoot && findDedicatedPostMarkdownInDir(dir)) {
       return true;
     }
 
@@ -221,7 +235,7 @@ function getBlogContentRoot() {
 }
 
 function buildBlogPost(urlPrefix: string, relPathParts: string[], dir: string) {
-  const markdownPath = findPostMarkdownInDir(dir);
+  const markdownPath = findDedicatedPostMarkdownInDir(dir);
   if (!markdownPath) {
     return null;
   }
