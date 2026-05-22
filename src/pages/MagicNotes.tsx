@@ -310,8 +310,7 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
           prose-a:text-guild-primary prose-a:break-words
           prose-p:break-words prose-p:[overflow-wrap:anywhere]
           prose-img:rounded-xl prose-img:shadow-md prose-img:my-4
-          prose-pre:p-0 prose-pre:bg-transparent prose-pre:overflow-x-auto
-          prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-guild-primary"
+          prose-pre:overflow-x-auto"
         >
           <div className="border-b-2 border-parchment-300 pb-6 mb-8">
             <h1 className="text-4xl md:text-5xl text-black font-bold mb-4 font-serif leading-tight">{post.title}</h1>
@@ -330,7 +329,29 @@ function BlogPostView({ posts }: { posts: BlogPost[] }) {
                   <Zoom>
                     <img {...props} className="mx-auto rounded-lg shadow-md max-h-[600px] object-contain" />
                   </Zoom>
-                )
+                ),
+                pre: ({ node, ...props }) => (
+                  <pre
+                    {...props}
+                    className="!my-6 !overflow-x-auto !rounded-lg !border !border-parchment-300 !bg-[#f8f1e3] !p-4 !text-sm !leading-relaxed !shadow-inner"
+                  />
+                ),
+                code: ({ node, className, children, ...props }) => {
+                  const isBlock = className?.includes("language-") || String(children).includes("\n");
+
+                  return (
+                    <code
+                      {...props}
+                      className={
+                        isBlock
+                          ? `${className ?? ""} block !bg-transparent !p-0 !text-guild-ink before:!content-none after:!content-none`.trim()
+                          : `${className ?? ""} rounded bg-gray-100 px-1 py-0.5 text-guild-primary before:!content-none after:!content-none`.trim()
+                      }
+                    >
+                      {children}
+                    </code>
+                  );
+                },
               }}
             >
               {renderedContent}

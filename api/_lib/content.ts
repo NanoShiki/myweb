@@ -372,70 +372,144 @@ function getBlogRelativeCandidates(value: string) {
   return Array.from(new Set(candidates.filter(Boolean)));
 }
 
+function splitUrlSuffix(value: string) {
+  const suffixIndex = value.search(/[?#]/);
+  return {
+    pathname: suffixIndex === -1 ? value : value.slice(0, suffixIndex),
+    suffix: suffixIndex === -1 ? "" : value.slice(suffixIndex),
+  };
+}
+
+function isExternalAssetUrl(value: string) {
+  return /^https?:\/\//i.test(value) || value.startsWith("#") || value.startsWith("data:");
+}
+
+function normalizeAssetReference(value: string) {
+  let normalized = decodePath(value.trim()).replace(/\\/g, "/");
+
+  if (normalized.startsWith("<") && normalized.endsWith(">")) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  return normalized.replace(/^\.\/+/, "").replace(/^\/+/, "");
+}
+
+function sliceAfterMarker(value: string, marker: string) {
+  const index = value.toLowerCase().indexOf(marker.toLowerCase());
+  return index === -1 ? null : value.slice(index + marker.length);
+}
+
+function uniqueAssetCandidates(candidates: string[]) {
+  return Array.from(
+    new Set(
+      candidates
+        .map((candidate) => path.posix.normalize(candidate).replace(/^\/+/, ""))
+        .filter(Boolean),
+    ),
+  );
+}
+
+function findExistingBlogAsset(relativePath: string, rawUrl: string) {
+  const normalized = normalizeAssetReference(rawUrl);
+  if (!normalized) {
+    return null;
+  }
+
+  const fromTextBlog = sliceAfterMarker(normalized, "text/Blog/");
+  const blogRelative = (fromTextBlog ?? normalized).replace(/^Blog\//i, "");
+  const normalizedFileName = path.posix.basename(normalized);
+  const blogRelativeFileName = path.posix.basename(blogRelative);
+
+  const candidates = uniqueAssetCandidates([
+    path.posix.join(relativePath, normalized),
+    path.posix.join(relativePath, "assets", normalizedFileName),
+    path.posix.join(relativePath, "assets", blogRelativeFileName),
+    blogRelative,
+  ]);
+
+  for (const candidate of candidates) {
+    const resolved = resolveWithin(blogRoot, candidate);
+    if (resolved && fileExists(resolved)) {
+      return pathToUrlPath(path.relative(blogRoot, resolved));
+    }
+  }
+
+  return null;
+}
+
+function toBlogAssetUrl(rawUrl: string, relativePath: string, baseAssetUrl: string) {
+  const trimmedUrl = rawUrl.trim();
+  if (!trimmedUrl || isExternalAssetUrl(trimmedUrl)) {
+    return trimmedUrl;
+  }
+
+  const { pathname, suffix } = splitUrlSuffix(trimmedUrl);
+  const resolvedAsset = findExistingBlogAsset(relativePath, pathname);
+  if (resolvedAsset) {
+    return encodeUrlPath(`/Blog/${resolvedAsset}${suffix}`);
+  }
+
+  if (pathname.startsWith("/")) {
+    return encodeUrlPath(`${pathname}${suffix}`);
+  }
+
+  return encodeUrlPath(`${baseAssetUrl}${normalizeAssetReference(pathname)}${suffix}`);
+}
+
+function parseMarkdownImageTarget(target: string) {
+  let url = target.trim();
+  let title = "";
+  const quoteMatch = url.match(/\s+['"][^'"]+['"]\s*$/);
+
+  if (quoteMatch) {
+    url = url.slice(0, quoteMatch.index).trim();
+    title = quoteMatch[0].trimEnd();
+  }
+
+  if (url.startsWith("<") && url.endsWith(">")) {
+    url = url.slice(1, -1).trim();
+  }
+
+  return { url, title };
+}
+
+function markdownAltFromAssetTarget(target: string, rawAlt: string | undefined) {
+  const cleanAlt = rawAlt?.trim();
+  if (cleanAlt && !/^\d+(?:x\d+)?$/i.test(cleanAlt)) {
+    return cleanAlt.replace(/[[\]\\]/g, "");
+  }
+
+  const { pathname } = splitUrlSuffix(normalizeAssetReference(target));
+  return path.posix.basename(pathname, path.posix.extname(pathname)).replace(/[[\]\\]/g, "");
+}
+
 function rewriteMarkdownAssetLinks(content: string, relativePath: string) {
   let baseAssetUrl = `/Blog/${relativePath}`;
   if (!baseAssetUrl.endsWith("/")) {
     baseAssetUrl += "/";
   }
 
-  const resolveAssetTarget = (url: string) => {
-    if (!url || url.startsWith("http") || url.startsWith("#") || url.startsWith("data:")) {
-      return null;
-    }
+  let rewritten = content.replace(/!\[\[([^\]\r\n]+)\]\]/g, (_match, rawTarget) => {
+    const [target, ...altParts] = rawTarget.split("|");
+    const rawAlt = altParts.join("|");
+    const finalUrl = toBlogAssetUrl(target, relativePath, baseAssetUrl);
+    const alt = markdownAltFromAssetTarget(target, rawAlt);
+    return `![${alt}](${finalUrl})`;
+  });
 
-    const cleanUrl = url.split(/[?#]/, 1)[0].replace(/\\/g, "/");
-    const baseDir = path.join(blogRoot, relativePath);
-    const directPath = path.join(baseDir, cleanUrl);
-    if (fileExists(directPath)) {
-      return cleanUrl;
-    }
-
-    const assetFallback = path.posix.join("assets", cleanUrl);
-    const assetFallbackPath = path.join(baseDir, assetFallback);
-    if (fileExists(assetFallbackPath)) {
-      return assetFallback;
-    }
-
-    return cleanUrl;
-  };
-
-  let rewritten = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, target) => {
-    let url = target.trim();
-    let title = "";
-    const spaceIdx = target.indexOf(" ");
-
-    if (spaceIdx !== -1 && (target.includes("\"") || target.includes("'"))) {
-      const quoteMatch = target.match(/\s+['"]([^'"]+)['"]$/);
-      if (quoteMatch) {
-        url = target.slice(0, quoteMatch.index).trim();
-        title = quoteMatch[0];
-      }
-    }
-
-    let finalUrl = url;
-    if (!url.startsWith("http") && !url.startsWith("#") && !url.startsWith("data:")) {
-      const resolvedTarget = resolveAssetTarget(url) ?? url;
-      if (url.startsWith("/")) {
-        finalUrl = encodeUrlPath(url);
-      } else {
-        finalUrl = encodeUrlPath(baseAssetUrl + resolvedTarget);
-      }
-    }
-
+  rewritten = rewritten.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt, target) => {
+    const { url, title } = parseMarkdownImageTarget(target);
+    const finalUrl = toBlogAssetUrl(url, relativePath, baseAssetUrl);
     return `![${alt}](${finalUrl}${title})`;
   });
 
-  rewritten = rewritten.replace(/<img[^>]+src="([^"]+)"[^>]*>/g, (match, url) => {
-    if (url.startsWith("http") || url.startsWith("data:")) {
+  rewritten = rewritten.replace(/<img\b([^>]*?)\bsrc=(["'])(.*?)\2([^>]*)>/gi, (match, before, quote, url, after) => {
+    const finalUrl = toBlogAssetUrl(url, relativePath, baseAssetUrl);
+    if (finalUrl === url.trim()) {
       return match;
     }
 
-    const resolvedTarget = resolveAssetTarget(url) ?? url;
-    const finalUrl = url.startsWith("/")
-      ? encodeUrlPath(url)
-      : encodeUrlPath(baseAssetUrl + resolvedTarget);
-
-    return match.replace(url, finalUrl);
+    return `<img${before}src=${quote}${finalUrl}${quote}${after}>`;
   });
 
   return rewritten;
