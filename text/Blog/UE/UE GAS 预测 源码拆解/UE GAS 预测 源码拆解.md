@@ -1,9 +1,17 @@
+---
+date: 2026-05-22
+zhihu-title: UE GAS 预测 源码拆解
+zhihu-topics:
+  - UE
+  - GAS
+zhihu-link: https://zhuanlan.zhihu.com/p/2041254240207856185
+zhihu-created-at: 2026-05-22 20:29
+---
 推荐先了解一下GAS预测的基本流程, 可以参考以下文章:
 [【Unreal】GAS 网络同步 - 知乎](https://zhuanlan.zhihu.com/p/27727604723)
 [UE4的GAS探究三：弱网延迟与预测Prediction - 知乎](https://zhuanlan.zhihu.com/p/458192589)
 
 本文更侧重于"GAS如何实现预测", 对于原理的讲解可能不如其他文章.
-
 思路是照着官方注释的顺序拆解源码.
 注释来自UE5.7, GameplayPrediction.h, gpt5.5翻译
 
